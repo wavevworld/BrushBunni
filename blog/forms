@@ -1,0 +1,100 @@
+# blog/forms.py
+from django import forms
+from django.core.validators import validate_email
+
+# Safe import - works whether models exist or not
+try:
+    from .models import ContactMessage
+except ImportError:
+    ContactMessage = None
+
+class ContactForm(forms.ModelForm if ContactMessage else forms.Form):
+    """Contact form that works with or without ContactMessage model"""
+    
+    name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your Name',
+            'required': True
+        })
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'your.email@example.com',
+            'required': True
+        })
+    )
+    subject = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Message Subject',
+            'required': True
+        })
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your message here...',
+            'rows': 5,
+            'required': True
+        })
+    )
+    
+    if ContactMessage:
+        class Meta:
+            model = ContactMessage
+            fields = ['name', 'email', 'subject', 'message']
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        try:
+            validate_email(email)
+        except forms.ValidationError:
+            raise forms.ValidationError('Please enter a valid email address.')
+        return email
+    
+    def clean_message(self):
+        message = self.cleaned_data.get('message')
+        if len(message) < 10:
+            raise forms.ValidationError('Message must be at least 10 characters long.')
+        return message
+
+class NewsletterForm(forms.Form):
+    """Newsletter subscription form"""
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email address',
+            'required': True
+        }),
+        label='Email Address'
+    )
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        try:
+            validate_email(email)
+        except forms.ValidationError:
+            raise forms.ValidationError('Please enter a valid email address.')
+        return email
+
+class SearchForm(forms.Form):
+    """Search form for site-wide search"""
+    q = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search...',
+            'autocomplete': 'off'
+        }),
+        label='Search'
+    )
+    
+    def clean_q(self):
+        query = self.cleaned_data.get('q')
+        if len(query) < 2:
+            raise forms.ValidationError('Search query must be at least 2 characters long.')
+        return query

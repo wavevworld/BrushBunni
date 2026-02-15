@@ -1,0 +1,195 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}BB Online - Brush Bunni{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bb-online-page h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+    
+    .bb-online-page .subtitle {
+        color: #888;
+        margin-bottom: 2rem;
+    }
+
+    .bb-notes-section h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+
+    /* Note card list */
+    .note-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .note-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 18px;
+        background: #fafafa;
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .note-card:hover {
+        background: #fff;
+        border-color: #e0e0e0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        transform: translateY(-1px);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .note-card.pinned {
+        border-left: 3px solid #ff9a00;
+        background: #fffaf0;
+    }
+
+    .note-thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .note-thumb-placeholder {
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea, #f093fb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 22px;
+    }
+
+    .note-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .note-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .note-desc {
+        font-size: 0.85rem;
+        color: #888;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .note-date {
+        font-size: 0.8rem;
+        color: #aaa;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .note-arrow {
+        color: #ccc;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        transition: color 0.2s;
+    }
+
+    .note-card:hover .note-arrow {
+        color: #667eea;
+    }
+
+    .note-card:hover .note-title {
+        color: #667eea;
+    }
+
+    .empty-notes {
+        text-align: center;
+        padding: 40px 20px;
+        color: #bbb;
+    }
+
+    .empty-notes .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 600px) {
+        .note-card {
+            padding: 12px 14px;
+        }
+        .note-thumb, .note-thumb-placeholder {
+            width: 44px;
+            height: 44px;
+        }
+        .note-date {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bb-online-page">
+    <p class="subtitle">Articles & updates from our blog</p>
+
+    <div class="bb-notes-section">
+              
+        {% if notes %}
+            <div class="note-list">
+                {% for note in notes %}
+                    <a href="{{ note.url }}" target="_blank" rel="noopener"
+                       class="note-card {% if note.is_pinned %}pinned{% endif %}">
+                        
+                        {% if note.thumbnail %}
+                            <img src="{{ note.thumbnail.url }}" alt="" class="note-thumb">
+                        {% else %}
+                            <div class="note-thumb-placeholder">&#x1f4dd;</div>
+                        {% endif %}
+                        
+                        <div class="note-info">
+                            <div class="note-title">
+                                {% if note.is_pinned %}&#x1f4cc; {% endif %}{{ note.title }}
+                            </div>
+                            {% if note.description %}
+                                <div class="note-desc">{{ note.description }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if note.published_date %}
+                            <span class="note-date">{{ note.published_date|date:"M d, Y" }}</span>
+                        {% endif %}
+                        
+                        <span class="note-arrow">&#x2192;</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-notes">
+                <div class="icon">&#x1f4dd;</div>
+                <p>No articles yet. Check back soon!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

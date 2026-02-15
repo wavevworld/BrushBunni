@@ -1,0 +1,581 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - Brush Bunni{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Use same content width as BB Online/Community pages */
+    .event-detail {
+        max-width: 100%;
+        padding: 20px;
+    }
+    
+    /* Left-aligned header */
+    .event-header {
+        text-align: left;
+        margin-bottom: 2rem;
+    }
+    
+    .event-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: left;
+    }
+    
+    .event-meta {
+        display: flex;
+        justify-content: flex-start;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .event-meta-item {
+        background: linear-gradient(45deg, #667eea, #f093fb);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    /* Photo Gallery with carousel */
+    .event-gallery {
+        margin: 2rem 0;
+        position: relative;
+    }
+    
+    .event-gallery h3 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        text-align: left;
+    }
+    
+    /* Carousel for event photos */
+    .photo-carousel {
+        position: relative;
+        background: #f5f5f5;
+        border-radius: 15px;
+        height: 400px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    
+    .photo-track {
+        display: flex;
+        height: 100%;
+        transition: transform 0.5s ease;
+        align-items: center;
+    }
+    
+    .photo-item {
+        flex: 0 0 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    
+    .photo-item img,
+    .photo-item video {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+    
+    /* Navigation for photo carousel */
+    .photo-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #333;
+        transition: all 0.3s ease;
+        border-radius: 50%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .photo-nav:hover:not(:disabled) {
+        background: white;
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .photo-nav.prev {
+        left: 15px;
+    }
+    
+    .photo-nav.next {
+        right: 15px;
+    }
+    
+    .photo-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+    
+    /* Photo thumbnails */
+    .photo-thumbnails {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    
+    .thumbnail {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .thumbnail.active {
+        opacity: 1;
+        border-color: #667eea;
+    }
+    
+    .thumbnail:hover {
+        opacity: 0.9;
+    }
+    
+    .thumbnail img,
+    .thumbnail video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Event Description */
+    .event-description {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 2rem;
+        border-radius: 15px;
+        margin: 2rem 0;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .event-description h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        text-align: left;
+    }
+    
+    .event-description p {
+        line-height: 1.6;
+        color: #666;
+        text-align: left;
+    }
+    
+    /* Back button */
+    .back-button {
+        background: linear-gradient(45deg, #667eea, #f093fb);
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        display: inline-block;
+        margin-bottom: 2rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Related events */
+    .related-events {
+        margin-top: 3rem;
+    }
+    
+    .related-events h3 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        text-align: left;
+    }
+    
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .related-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+    }
+    
+    .related-card-image {
+        height: 150px;
+        background: linear-gradient(45deg, #667eea, #f093fb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+    }
+    
+    .related-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .related-card-content {
+        padding: 15px;
+    }
+    
+    .related-card-title {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .related-card-date {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    /* Modal for full-size viewing */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        cursor: zoom-out;
+    }
+    
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+    }
+    
+    .modal-content img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 40px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+    
+    .modal-close:hover {
+        color: #bbb;
+    }
+    
+    /* No photos placeholder */
+    .no-photos {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f5f5f5;
+        border-radius: 15px;
+        color: #999;
+    }
+    
+    .no-photos .emoji {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .event-title {
+            font-size: 1.8rem;
+        }
+        
+        .event-meta {
+            gap: 0.8rem;
+        }
+        
+        .event-meta-item {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+        }
+        
+        .photo-carousel {
+            height: 300px;
+        }
+        
+        .photo-thumbnails {
+            gap: 8px;
+        }
+        
+        .thumbnail {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .related-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="event-detail">
+    <!-- Back Button -->
+    <a href="{% url 'events' %}" class="back-button">← Back to Events</a>
+    
+    <!-- Event Header -->
+    <div class="event-header">
+        <h1 class="event-title">{{ event.title }}</h1>
+        
+        <div class="event-meta">
+            <div class="event-meta-item">
+                📅 {{ event.date|date:"F j, Y" }}
+                {% if event.start_time %}
+                    at {{ event.start_time|time:"g:i A" }}
+                {% endif %}
+            </div>
+            
+            {% if event.location %}
+                <div class="event-meta-item">
+                    {% if event.is_online %}
+                        🌐 Online Event
+                    {% else %}
+                        📍 {{ event.location }}
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            {% if event.max_participants %}
+                <div class="event-meta-item">
+                    👥 Max {{ event.max_participants }} participants
+                </div>
+            {% endif %}
+            
+            <div class="event-meta-item">
+                {{ event.code }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Photos Gallery -->
+    {% if event_photos %}
+        <div class="event-gallery">
+            <h3>Event Photos</h3>
+            
+            <!-- Photo Carousel -->
+            <div class="photo-carousel">
+                <button class="photo-nav prev" onclick="changePhoto(-1)">‹</button>
+                <button class="photo-nav next" onclick="changePhoto(1)">›</button>
+                
+                <div class="photo-track" id="photoTrack">
+                    {% for photo in event_photos %}
+                        <div class="photo-item" onclick="openModal('{{ photo.image.url }}')">
+                            {% if photo.is_video %}
+                                <video src="{{ photo.image.url }}" controls></video>
+                            {% else %}
+                                <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:event.title }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Thumbnails -->
+            {% if event_photos|length > 1 %}
+                <div class="photo-thumbnails">
+                    {% for photo in event_photos %}
+                        <div class="thumbnail {% if forloop.first %}active{% endif %}" 
+                             onclick="goToPhoto({{ forloop.counter0 }})">
+                            {% if photo.is_video %}
+                                <video src="{{ photo.image.url }}" muted></video>
+                            {% else %}
+                                <img src="{{ photo.image.url }}" alt="">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="no-photos">
+            <div class="emoji">📸</div>
+            <div>No photos available for this event yet</div>
+        </div>
+    {% endif %}
+    
+    <!-- Event Description -->
+    <div class="event-description">
+        <h3>About This Event</h3>
+        {% if event.description %}
+            <p>{{ event.description|linebreaks }}</p>
+        {% else %}
+            <p>{{ event.short_description|default:"Join us for this amazing community event!" }}</p>
+        {% endif %}
+        
+        {% if event.registration_required %}
+            <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(45deg, #667eea, #f093fb); color: white; border-radius: 10px;">
+                <strong>Registration Required!</strong>
+                {% if event.registration_deadline %}
+                    <br>Deadline: {{ event.registration_deadline|date:"F j, Y g:i A" }}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Related Events -->
+    {% if related_events %}
+        <div class="related-events">
+            <h3>Related Events</h3>
+            <div class="related-grid">
+                {% for related in related_events %}
+                    <a href="{{ related.get_absolute_url }}" class="related-card">
+                        <div class="related-card-image">
+                            {% if related.photos.first %}
+                                <img src="{{ related.photos.first.image.url }}" alt="{{ related.title }}">
+                            {% else %}
+                                🎨
+                            {% endif %}
+                        </div>
+                        <div class="related-card-content">
+                            <div class="related-card-title">{{ related.title }}</div>
+                            <div class="related-card-date">{{ related.date|date:"F j, Y" }}</div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal" onclick="closeModal()">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <div class="modal-content">
+        <img id="modalImage">
+    </div>
+</div>
+
+<script>
+let currentPhoto = 0;
+const photos = document.querySelectorAll('.photo-item');
+const thumbnails = document.querySelectorAll('.thumbnail');
+
+// Photo carousel navigation
+function changePhoto(direction) {
+    const newPhoto = currentPhoto + direction;
+    
+    // No looping
+    if (newPhoto < 0 || newPhoto >= photos.length) {
+        return;
+    }
+    
+    currentPhoto = newPhoto;
+    updatePhotoCarousel();
+}
+
+function goToPhoto(index) {
+    currentPhoto = index;
+    updatePhotoCarousel();
+}
+
+function updatePhotoCarousel() {
+    const track = document.getElementById('photoTrack');
+    const transform = -currentPhoto * 100;
+    track.style.transform = `translateX(${transform}%)`;
+    
+    // Update thumbnails
+    thumbnails.forEach((thumb, index) => {
+        thumb.classList.toggle('active', index === currentPhoto);
+    });
+    
+    // Update navigation buttons
+    const prevBtn = document.querySelector('.photo-nav.prev');
+    const nextBtn = document.querySelector('.photo-nav.next');
+    
+    if (prevBtn) {
+        prevBtn.disabled = currentPhoto === 0;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = currentPhoto === photos.length - 1;
+    }
+}
+
+// Modal functionality
+function openModal(imageSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    modal.style.display = 'block';
+    modalImg.src = imageSrc;
+}
+
+function closeModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+    if (event.key === 'ArrowLeft') {
+        changePhoto(-1);
+    }
+    if (event.key === 'ArrowRight') {
+        changePhoto(1);
+    }
+});
+
+// Initialize
+updatePhotoCarousel();
+</script>
+{% endblock %}

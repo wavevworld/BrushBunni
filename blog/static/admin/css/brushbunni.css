@@ -1,0 +1,307 @@
+/* =============================================================================
+   BrushBunni Admin — Clean Theme
+   ============================================================================= */
+
+/* ── Hide clutter ──────────────────────────────────────────────────────────── */
+#changelist-search,                  /* search bar */
+.actions,                            /* bulk actions row */
+#changelist-filter,                  /* sidebar filter panel */
+.object-tools .addlink + li,         /* extra object tools */
+#result_list thead th:first-child .text, /* select-all checkbox label */
+.paginator                           /* pagination (if list_per_page is enough) */
+{
+    /* display: none !important; */
+}
+
+/* Actually hide search */
+#changelist-search { display: none !important; }
+
+/* Hide "Select all" checkbox column — we use drag instead */
+#result_list thead th.action-checkbox-column,
+#result_list tbody td.action-checkbox-column {
+    display: none !important;
+}
+
+/* ── Sidebar tweaks ────────────────────────────────────────────────────────── */
+#header {
+    background: #1e1e2e !important;
+}
+
+#header h1, #header h1 a:link, #header h1 a:visited {
+    color: #fff !important;
+    font-weight: 700;
+}
+
+/* ── List view ─────────────────────────────────────────────────────────────── */
+
+/* Event / Note thumbnail in list */
+.list-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.list-thumb.empty {
+    width: 48px;
+    height: 48px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+/* Drag handle */
+.drag-handle {
+    cursor: grab;
+    font-size: 18px;
+    color: #bbb;
+    user-select: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: all 0.15s;
+    letter-spacing: -2px;
+}
+
+.drag-handle:hover {
+    color: #666;
+    background: #f0f0f0;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Row hover */
+#result_list tbody tr {
+    transition: background 0.15s;
+}
+
+#result_list tbody tr:hover {
+    background: #f8f9ff !important;
+}
+
+/* Dragging state */
+#result_list tbody tr.dragging {
+    opacity: 0.5;
+    background: #e8edff !important;
+}
+
+#result_list tbody tr.drag-over {
+    border-top: 3px solid #667eea !important;
+}
+
+/* ── Photo inline (edit form) ──────────────────────────────────────────────── */
+
+.photo-thumb {
+    display: inline-block;
+}
+
+.photo-thumb img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #eee;
+    transition: all 0.2s;
+}
+
+.photo-thumb img:hover {
+    border-color: #667eea;
+    transform: scale(1.05);
+}
+
+.photo-thumb.video-thumb {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-thumb.video-thumb a {
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Inline photo row */
+.tabular .module table tbody tr {
+    transition: background 0.15s;
+}
+
+.tabular .module table tbody tr:hover {
+    background: #fafbff;
+}
+
+/* Photo upload area */
+.photo-upload-input {
+    border: 2px dashed #ddd;
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.photo-upload-input:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+/* ── Edit form improvements ────────────────────────────────────────────────── */
+
+/* Clean fieldset */
+fieldset {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Input styling */
+#content input[type="text"],
+#content input[type="url"],
+#content input[type="date"],
+#content input[type="time"],
+#content textarea,
+#content select {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+#content input[type="text"]:focus,
+#content input[type="url"]:focus,
+#content textarea:focus,
+#content select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Save button */
+input[type="submit"][name="_save"],
+input[type="submit"].default {
+    background: #667eea !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 28px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+input[type="submit"][name="_save"]:hover,
+input[type="submit"].default:hover {
+    background: #5a6fd6 !important;
+}
+
+/* Delete link in edit form */
+.deletelink {
+    color: #ef4444 !important;
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+/* ── Status filter as tabs ─────────────────────────────────────────────────── */
+
+/* Make list filter look like tabs */
+#changelist-filter {
+    display: none;
+}
+
+/* Tab bar injected by JS */
+.bb-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    padding: 4px;
+    width: fit-content;
+}
+
+.bb-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.bb-tab:hover {
+    color: #555;
+    background: #eee;
+}
+
+.bb-tab.active {
+    background: white;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* ── Dashboard cleanup ─────────────────────────────────────────────────────── */
+
+/* Remove "Recent Actions" panel */
+#recent-actions-module {
+    display: none !important;
+}
+
+/* Clean app modules on dashboard */
+.app-blog .module caption {
+    font-size: 18px;
+    font-weight: 700;
+    padding: 16px;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .list-thumb {
+        width: 36px;
+        height: 36px;
+    }
+    .list-thumb.empty {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    .photo-thumb img {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* ── Add button style ──────────────────────────────────────────────────────── */
+.addlink, .object-tools a {
+    background: #667eea !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+.addlink:hover, .object-tools a:hover {
+    background: #5a6fd6 !important;
+}
+
+/* ── Help text ─────────────────────────────────────────────────────────────── */
+.help {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+}

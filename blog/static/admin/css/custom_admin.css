@@ -1,0 +1,999 @@
+/* =============================================================================
+   BrushBunni Admin - Strapi Content Manager CSS
+   =============================================================================
+   
+   Strapi Design System applied to Django Admin
+   Reference: https://design-system.strapi.io/
+   
+   Color Palette:
+   - Primary: #4945ff (Indigo)
+   - Success: #5cb176 (Green)
+   - Warning: #f29d41 (Orange)
+   - Danger: #ee5e52 (Red)
+   - Neutral: #212134 to #ffffff
+   ============================================================================= */
+
+/* =============================================================================
+   CSS VARIABLES - Strapi Design Tokens
+   ============================================================================= */
+
+:root {
+    /* Primary */
+    --strapi-primary-100: #f0f0ff;
+    --strapi-primary-200: #d9d8ff;
+    --strapi-primary-500: #7b79ff;
+    --strapi-primary-600: #4945ff;
+    --strapi-primary-700: #271fe0;
+    
+    /* Secondary */
+    --strapi-secondary-100: #eaf5ff;
+    --strapi-secondary-500: #66b7f1;
+    --strapi-secondary-600: #0c75af;
+    --strapi-secondary-700: #006096;
+    
+    /* Success */
+    --strapi-success-100: #eafbe7;
+    --strapi-success-200: #c6f0c2;
+    --strapi-success-500: #5cb176;
+    --strapi-success-600: #328048;
+    --strapi-success-700: #2f6846;
+    
+    /* Warning */
+    --strapi-warning-100: #fdf4dc;
+    --strapi-warning-200: #fae7b9;
+    --strapi-warning-500: #f29d41;
+    --strapi-warning-600: #d9822f;
+    --strapi-warning-700: #be5d01;
+    
+    /* Danger */
+    --strapi-danger-100: #fcecea;
+    --strapi-danger-200: #f5c0b8;
+    --strapi-danger-500: #ee5e52;
+    --strapi-danger-600: #d02b20;
+    --strapi-danger-700: #b72b1a;
+    
+    /* Alternative (Purple) */
+    --strapi-alternative-100: #f6ecfc;
+    --strapi-alternative-200: #e0c1f4;
+    --strapi-alternative-500: #ac73e6;
+    --strapi-alternative-600: #9736e8;
+    --strapi-alternative-700: #8312d1;
+    
+    /* Neutral */
+    --strapi-neutral-0: #ffffff;
+    --strapi-neutral-100: #f6f6f9;
+    --strapi-neutral-150: #eaeaef;
+    --strapi-neutral-200: #dcdce4;
+    --strapi-neutral-300: #c0c0cf;
+    --strapi-neutral-400: #a5a5ba;
+    --strapi-neutral-500: #8e8ea9;
+    --strapi-neutral-600: #666687;
+    --strapi-neutral-700: #4a4a6a;
+    --strapi-neutral-800: #32324d;
+    --strapi-neutral-900: #212134;
+    
+    /* Border Radius */
+    --strapi-radius-sm: 4px;
+    --strapi-radius: 4px;
+    --strapi-radius-lg: 8px;
+    
+    /* Shadows */
+    --strapi-shadow-filterShadow: 0 1px 4px rgba(33, 33, 52, 0.1);
+    --strapi-shadow-tableShadow: 0 1px 4px rgba(33, 33, 52, 0.1);
+}
+
+/* =============================================================================
+   GLOBAL - Admin Panel Base
+   ============================================================================= */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+                 Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================================
+   HEADER - Strapi Dark Navigation
+   ============================================================================= */
+
+#header {
+    background: var(--strapi-neutral-900) !important;
+    height: 52px;
+    box-shadow: none;
+    border-bottom: 1px solid var(--strapi-neutral-800);
+}
+
+#branding h1 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.2px;
+    margin: 0;
+    padding: 0 20px;
+    line-height: 52px;
+}
+
+#branding h1 a:link,
+#branding h1 a:visited {
+    color: var(--strapi-neutral-0) !important;
+}
+
+#user-tools {
+    font-size: 14px;
+    padding-right: 20px;
+    line-height: 52px;
+}
+
+#user-tools a {
+    color: var(--strapi-neutral-400) !important;
+    text-decoration: none;
+}
+
+#user-tools a:hover {
+    color: var(--strapi-neutral-0) !important;
+}
+
+/* =============================================================================
+   CONTENT AREA - Strapi Light Background
+   ============================================================================= */
+
+#content {
+    background: var(--strapi-neutral-100) !important;
+    padding: 24px !important;
+    min-height: calc(100vh - 52px);
+}
+
+#content h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--strapi-neutral-800);
+    margin-bottom: 24px;
+    letter-spacing: -0.3px;
+}
+
+/* =============================================================================
+   FORMS - Strapi Input Styling
+   ============================================================================= */
+
+.form-row {
+    padding: 16px 24px !important;
+    border-bottom: 1px solid var(--strapi-neutral-150) !important;
+    background: var(--strapi-neutral-0);
+}
+
+.form-row:last-child {
+    border-bottom: none !important;
+}
+
+.form-row > label {
+    display: block !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--strapi-neutral-800) !important;
+    margin-bottom: 4px;
+    text-transform: none;
+}
+
+/* Strapi Input Fields */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="password"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    border: 1px solid var(--strapi-neutral-200) !important;
+    border-radius: var(--strapi-radius) !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    color: var(--strapi-neutral-800) !important;
+    background: var(--strapi-neutral-0) !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--strapi-primary-600) !important;
+    box-shadow: 0 0 0 2px var(--strapi-primary-100) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--strapi-neutral-500);
+}
+
+/* UID/Entry Title Field */
+.strapi-uid-field {
+    font-family: 'SF Mono', Monaco, 'Consolas', monospace !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Help Text - Strapi Description */
+.help,
+p.help {
+    font-size: 12px !important;
+    color: var(--strapi-neutral-500) !important;
+    margin-top: 4px !important;
+    line-height: 1.5;
+}
+
+/* Checkbox - Strapi Toggle */
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--strapi-primary-600);
+    cursor: pointer;
+    border-radius: var(--strapi-radius-sm);
+}
+
+/* =============================================================================
+   BUTTONS - Strapi Actions
+   ============================================================================= */
+
+input[type="submit"],
+.submit-row input,
+.button,
+a.button {
+    background: var(--strapi-primary-600) !important;
+    border: none !important;
+    border-radius: var(--strapi-radius) !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--strapi-neutral-0) !important;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+}
+
+input[type="submit"]:hover,
+.submit-row input:hover,
+.button:hover {
+    background: var(--strapi-primary-700) !important;
+}
+
+.default {
+    background: var(--strapi-primary-600) !important;
+}
+
+/* Delete Button - Strapi Danger */
+.deletelink,
+a.deletelink {
+    background: transparent !important;
+    color: var(--strapi-danger-600) !important;
+    border: 1px solid var(--strapi-danger-600) !important;
+    border-radius: var(--strapi-radius) !important;
+    padding: 8px 16px !important;
+}
+
+.deletelink:hover {
+    background: var(--strapi-danger-600) !important;
+    color: var(--strapi-neutral-0) !important;
+}
+
+/* Submit Row - Strapi Footer */
+.submit-row {
+    background: var(--strapi-neutral-0) !important;
+    border-top: 1px solid var(--strapi-neutral-200) !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* =============================================================================
+   FIELDSETS - Strapi Card Sections
+   ============================================================================= */
+
+fieldset {
+    background: var(--strapi-neutral-0) !important;
+    border: 1px solid var(--strapi-neutral-200) !important;
+    border-radius: var(--strapi-radius-lg) !important;
+    margin-bottom: 24px !important;
+    box-shadow: var(--strapi-shadow-tableShadow);
+    overflow: hidden;
+}
+
+fieldset h2 {
+    background: var(--strapi-neutral-0) !important;
+    color: var(--strapi-neutral-800) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--strapi-neutral-150);
+}
+
+fieldset .description {
+    padding: 12px 24px !important;
+    background: var(--strapi-neutral-100);
+    font-size: 13px;
+    color: var(--strapi-neutral-600);
+    border-bottom: 1px solid var(--strapi-neutral-150);
+    margin: 0;
+}
+
+/* Collapse - Strapi Accordion */
+fieldset.collapse h2 {
+    cursor: pointer;
+}
+
+fieldset.collapse h2::after {
+    content: " ▼";
+    font-size: 10px;
+    color: var(--strapi-neutral-400);
+    float: right;
+}
+
+fieldset.collapsed h2::after {
+    content: " ▶";
+}
+
+/* =============================================================================
+   LIST VIEW TABLE - Strapi Collection Type List
+   ============================================================================= */
+
+#result_list {
+    background: var(--strapi-neutral-0);
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    box-shadow: var(--strapi-shadow-tableShadow);
+    overflow: hidden;
+}
+
+#result_list th {
+    background: var(--strapi-neutral-100) !important;
+    color: var(--strapi-neutral-600) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--strapi-neutral-200);
+}
+
+#result_list th a {
+    color: var(--strapi-neutral-600) !important;
+    text-decoration: none;
+}
+
+#result_list td {
+    padding: 16px !important;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--strapi-neutral-150);
+    font-size: 14px;
+    color: var(--strapi-neutral-800);
+}
+
+#result_list tr:last-child td {
+    border-bottom: none;
+}
+
+#result_list tbody tr:hover td {
+    background: var(--strapi-neutral-100) !important;
+}
+
+/* Checkbox column */
+#result_list th.action-checkbox-column,
+#result_list td.action-checkbox {
+    width: 40px;
+    text-align: center;
+}
+
+/* =============================================================================
+   LIST VIEW - Custom Components
+   ============================================================================= */
+
+/* Thumbnail */
+.strapi-list-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--strapi-radius);
+    background: var(--strapi-neutral-150);
+}
+
+.strapi-list-thumbnail.strapi-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--strapi-neutral-400);
+    font-size: 16px;
+}
+
+/* Entry Title */
+.strapi-entry-title {
+    font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+    font-weight: 600;
+    color: var(--strapi-neutral-800);
+    font-size: 14px;
+}
+
+/* Enumeration Badge */
+.strapi-enum-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: var(--strapi-radius);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Date Badge */
+.strapi-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.strapi-date-badge.strapi-past {
+    background: var(--strapi-neutral-150);
+    color: var(--strapi-neutral-600);
+}
+
+.strapi-date-badge.strapi-today {
+    background: var(--strapi-primary-100);
+    color: var(--strapi-primary-700);
+}
+
+.strapi-date-badge.strapi-soon {
+    background: var(--strapi-success-100);
+    color: var(--strapi-success-700);
+}
+
+.strapi-date-badge.strapi-upcoming {
+    background: var(--strapi-success-100);
+    color: var(--strapi-success-700);
+}
+
+.strapi-date-badge small {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* Relation Counter */
+.strapi-relation-counter {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.strapi-relation-counter.strapi-has-items {
+    color: var(--strapi-success-600);
+}
+
+.strapi-relation-counter.strapi-empty {
+    color: var(--strapi-neutral-300);
+}
+
+/* Status Dot - Draft & Publish */
+.strapi-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.strapi-status-dot.strapi-published {
+    background: var(--strapi-success-500);
+}
+
+.strapi-status-dot.strapi-draft {
+    background: var(--strapi-neutral-300);
+}
+
+/* =============================================================================
+   INLINE - Repeatable Component
+   ============================================================================= */
+
+.inline-group {
+    background: var(--strapi-neutral-0);
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    margin-top: 24px;
+    box-shadow: var(--strapi-shadow-tableShadow);
+    overflow: hidden;
+}
+
+.inline-group h2 {
+    background: var(--strapi-neutral-0) !important;
+    color: var(--strapi-neutral-800) !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+    border-bottom: 1px solid var(--strapi-neutral-150);
+}
+
+/* Tabular Inline */
+.tabular {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.tabular thead th {
+    background: var(--strapi-neutral-100) !important;
+    color: var(--strapi-neutral-600) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid var(--strapi-neutral-200);
+    text-align: left;
+}
+
+.tabular tbody td {
+    padding: 16px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid var(--strapi-neutral-150);
+}
+
+.tabular tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Drag Handle */
+.strapi-drag-handle {
+    cursor: grab;
+    color: var(--strapi-neutral-400);
+    font-size: 14px;
+    padding: 8px;
+    user-select: none;
+    letter-spacing: 2px;
+}
+
+.strapi-drag-handle:hover {
+    color: var(--strapi-neutral-600);
+}
+
+.strapi-drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Media Preview in Component */
+.strapi-media-preview {
+    display: block;
+    width: 88px;
+    height: 66px;
+    border-radius: var(--strapi-radius);
+    overflow: hidden;
+    background: var(--strapi-neutral-150);
+}
+
+.strapi-media-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s;
+}
+
+.strapi-media-preview:hover img {
+    transform: scale(1.05);
+}
+
+.strapi-media-preview.strapi-video {
+    background: var(--strapi-neutral-800);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.strapi-play-icon {
+    color: var(--strapi-neutral-0);
+    font-size: 20px;
+}
+
+.strapi-media-type {
+    color: var(--strapi-neutral-400);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.strapi-no-media {
+    color: var(--strapi-neutral-400);
+    font-size: 13px;
+}
+
+.strapi-delete-btn {
+    opacity: 0.4;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.strapi-delete-btn:hover {
+    opacity: 1;
+}
+
+/* =============================================================================
+   MEDIA LIBRARY STYLES (Photo Admin)
+   ============================================================================= */
+
+.strapi-asset-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: var(--strapi-radius);
+    background: var(--strapi-neutral-150);
+}
+
+.strapi-asset-thumb.strapi-video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--strapi-neutral-800);
+    color: var(--strapi-neutral-0);
+    font-size: 20px;
+}
+
+.strapi-relation-link {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--strapi-primary-600) !important;
+    text-decoration: none;
+}
+
+.strapi-relation-link:hover {
+    text-decoration: underline;
+}
+
+.strapi-empty-text {
+    color: var(--strapi-neutral-400);
+    font-style: italic;
+}
+
+.strapi-featured {
+    font-size: 16px;
+}
+
+.strapi-not-featured {
+    color: var(--strapi-neutral-300);
+    font-size: 16px;
+}
+
+/* =============================================================================
+   MEMBER AVATARS
+   ============================================================================= */
+
+.strapi-avatar-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--strapi-neutral-150);
+}
+
+.strapi-avatar-thumb.strapi-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* =============================================================================
+   CONTACT MESSAGES
+   ============================================================================= */
+
+.strapi-status-read {
+    color: var(--strapi-neutral-400);
+    font-size: 12px;
+}
+
+.strapi-status-unread {
+    color: var(--strapi-primary-600);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* =============================================================================
+   SITE CONFIG
+   ============================================================================= */
+
+.strapi-status-active {
+    color: var(--strapi-success-600);
+    font-weight: 500;
+}
+
+.strapi-status-inactive {
+    color: var(--strapi-neutral-400);
+}
+
+/* =============================================================================
+   ACTIONS BAR - Bulk Actions
+   ============================================================================= */
+
+.actions {
+    background: var(--strapi-neutral-0) !important;
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    padding: 12px 16px !important;
+    margin-bottom: 16px;
+    box-shadow: var(--strapi-shadow-filterShadow);
+}
+
+.actions label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--strapi-neutral-600);
+}
+
+.actions select {
+    border-radius: var(--strapi-radius) !important;
+    padding: 8px 12px !important;
+    margin: 0 8px;
+}
+
+.actions button {
+    background: var(--strapi-neutral-100) !important;
+    color: var(--strapi-neutral-700) !important;
+    border: 1px solid var(--strapi-neutral-200) !important;
+    border-radius: var(--strapi-radius) !important;
+    padding: 8px 16px !important;
+    font-weight: 500 !important;
+}
+
+.actions button:hover {
+    background: var(--strapi-neutral-200) !important;
+}
+
+/* =============================================================================
+   FILTERS SIDEBAR
+   ============================================================================= */
+
+#changelist-filter {
+    background: var(--strapi-neutral-0);
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    padding: 16px;
+    box-shadow: var(--strapi-shadow-filterShadow);
+}
+
+#changelist-filter h2 {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--strapi-neutral-600) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--strapi-neutral-200);
+    margin-bottom: 12px;
+}
+
+#changelist-filter h3 {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--strapi-neutral-800) !important;
+    margin: 16px 0 8px;
+}
+
+#changelist-filter ul {
+    padding: 0;
+    margin: 0;
+}
+
+#changelist-filter li {
+    list-style: none;
+    padding: 6px 0;
+}
+
+#changelist-filter a {
+    color: var(--strapi-neutral-600);
+    font-size: 13px;
+    text-decoration: none;
+}
+
+#changelist-filter a:hover,
+#changelist-filter li.selected a {
+    color: var(--strapi-primary-600);
+}
+
+/* =============================================================================
+   SEARCH BAR
+   ============================================================================= */
+
+#searchbar {
+    margin-bottom: 16px;
+}
+
+#searchbar input[type="text"] {
+    min-width: 280px;
+    padding: 10px 16px !important;
+}
+
+#searchbar input[type="submit"] {
+    margin-left: 8px;
+}
+
+/* =============================================================================
+   BREADCRUMBS
+   ============================================================================= */
+
+.breadcrumbs {
+    background: var(--strapi-neutral-0) !important;
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    padding: 12px 20px !important;
+    margin-bottom: 24px;
+    font-size: 14px;
+    box-shadow: var(--strapi-shadow-filterShadow);
+}
+
+.breadcrumbs a {
+    color: var(--strapi-primary-600) !important;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+/* =============================================================================
+   MESSAGES - Notifications
+   ============================================================================= */
+
+.messagelist {
+    margin-bottom: 24px;
+}
+
+.messagelist li {
+    border-radius: var(--strapi-radius) !important;
+    padding: 12px 16px !important;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.messagelist .success {
+    background: var(--strapi-success-100) !important;
+    color: var(--strapi-success-700) !important;
+}
+
+.messagelist .error {
+    background: var(--strapi-danger-100) !important;
+    color: var(--strapi-danger-700) !important;
+}
+
+.messagelist .warning {
+    background: var(--strapi-warning-100) !important;
+    color: var(--strapi-warning-700) !important;
+}
+
+/* =============================================================================
+   PAGINATION
+   ============================================================================= */
+
+.paginator {
+    background: var(--strapi-neutral-0) !important;
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    padding: 12px 16px !important;
+    margin-top: 16px;
+    box-shadow: var(--strapi-shadow-filterShadow);
+}
+
+.paginator a {
+    color: var(--strapi-primary-600) !important;
+    font-weight: 500;
+}
+
+/* =============================================================================
+   OBJECT TOOLS
+   ============================================================================= */
+
+.object-tools {
+    margin-bottom: 16px !important;
+}
+
+.object-tools a {
+    background: var(--strapi-neutral-0) !important;
+    color: var(--strapi-neutral-700) !important;
+    border: 1px solid var(--strapi-neutral-200) !important;
+    border-radius: var(--strapi-radius) !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-decoration: none;
+}
+
+.object-tools a:hover {
+    background: var(--strapi-neutral-100) !important;
+}
+
+/* Hide view on site */
+.viewsitelink {
+    display: none !important;
+}
+
+/* =============================================================================
+   DATE HIERARCHY
+   ============================================================================= */
+
+.xfull {
+    background: var(--strapi-neutral-0);
+    border: 1px solid var(--strapi-neutral-200);
+    border-radius: var(--strapi-radius-lg);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--strapi-shadow-filterShadow);
+}
+
+.xfull a {
+    color: var(--strapi-primary-600);
+    font-weight: 500;
+}
+
+/* =============================================================================
+   MEDIA INPUT - Drag & Drop
+   ============================================================================= */
+
+.strapi-media-input {
+    display: block;
+    width: 100%;
+    padding: 32px 24px !important;
+    border: 2px dashed var(--strapi-neutral-300) !important;
+    border-radius: var(--strapi-radius-lg) !important;
+    background: var(--strapi-neutral-100) !important;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.strapi-media-input:hover,
+.strapi-media-input:focus {
+    border-color: var(--strapi-primary-600) !important;
+    background: var(--strapi-primary-100) !important;
+}
+
+.strapi-media-input::file-selector-button {
+    background: var(--strapi-primary-600);
+    color: var(--strapi-neutral-0);
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--strapi-radius);
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+    #content {
+        padding: 16px !important;
+    }
+    
+    .strapi-list-thumbnail {
+        width: 32px;
+        height: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .strapi-media-preview {
+        width: 64px;
+        height: 48px;
+    }
+    
+    .strapi-enum-badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+}

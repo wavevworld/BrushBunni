@@ -1,0 +1,958 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Events - Brush Bunni{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Override default content box for events page */
+    .page-events .content-box {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+        margin-top: 0 !important;
+        position: static !important;
+    }
+
+    /* Main events container */
+    .events-container {
+        width: 100%;
+        padding: 40px 40px 40px 0;
+        margin: 0;
+        min-height: 100vh;
+    }
+
+    /* Combined wrapper with rounded corners */
+    .events-wrapper {
+        background: rgba(30, 30, 30, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Previous Events Section */
+    .previous-events-section {
+        padding: 30px 40px 40px;
+    }
+
+    /* Title styling - matching the target */
+    .events-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: white;
+        margin: 0 0 10px 0;
+        margin-left: 0;
+        text-align: left;
+        padding-left: 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Tabs bar */
+    .event-tabs-container {
+        display: flex;
+        align-items: stretch;
+        margin: 0 0 20px -40px;
+        background: #8a7c79;
+        border: 1px solid rgba(255,255,255,.35);
+        border-left: none;
+        border-radius: 0 0 20px 0;
+        padding: 0;
+        overflow: hidden;
+        width: max-content;
+    }
+
+    /* Tabs */
+    .event-tab {
+        background: transparent;
+        color: rgba(255,255,255,.85);
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        padding: 6px 28px 8px;
+        cursor: pointer;
+        white-space: nowrap;
+        position: relative;
+        border-radius: 0;
+    }
+    .event-tab:not(:first-child){
+        border-bottom-left-radius: 18px;
+    }
+    .event-tab:not(:first-child)::before  {
+        content:"";
+        position:absolute;
+        left: -18px;
+        bottom:0;
+        width:18px;
+        height:18px;
+        background:#8a7c79;
+        border-bottom-right-radius:18px;
+        z-index:2;
+    }
+    .event-tab.active {
+        background: #fff;
+        color: #5c5c5c;
+        z-index: 3;
+        border-bottom-right-radius:18px;
+    }
+    .event-tab.active:not(:first-child)::after {
+        content: "";
+        position: absolute;
+        left: 0;              /* внутри активного таба */
+        bottom: 0;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-bottom-left-radius: 18px;
+        z-index: 4;            /* выше всего */
+        pointer-events: none;
+    }
+
+    .event-tab.active:not(:first-child)::before {
+        background: #8a7c79; 
+    }
+    .event-tab.active:not(:first-child){
+        border-bottom-left-radius:18px;
+    }
+    /* левый край полоски (первый таб) */
+    .event-tab:first-child {
+        border-bottom-left-radius: 0;
+    }
+    .event-tab.active:first-child {
+        border-bottom-left-radius: 0;
+    }
+    .event-tab:last-child {
+        border-bottom-right-radius: 18px;
+    }
+    .event-tab.active:last-child {
+        border-bottom-right-radius: 18px;
+    }
+
+    /* focus */
+    .event-tab:focus-visible { 
+        outline:none; 
+    }
+    /* не рисуем разделитель у активной и сразу после неё */
+    .event-tab.active::after,
+    .event-tab.active + .event-tab::after {
+        display: none;
+    }
+
+    /* Вертикальный разделитель между табами */
+    .event-tab:not(:first-child)::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 8px;
+        bottom: 8px;
+        width: 1px;
+        background: rgba(255,255,255,0.25);
+        z-index: 1;              /* ниже активной вкладки */
+        pointer-events: none;
+    }
+
+
+    /* Gallery Carousel - Three Photo Wide View */
+    .gallery-carousel{
+        position: relative;
+        height: 560px;
+        margin: 10px 0 30px;
+        background:#0f0f11;
+        border-radius: 18px;
+        overflow:hidden;
+    }
+
+    .carousel-viewport {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .carousel-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    .gallery-item{
+        position:absolute;
+        top:0;
+        bottom:0;
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(0,0,0,.45);
+        transition: transform .45s ease,
+                    opacity .45s ease,
+                    left .45s ease,
+                    right .45s ease,
+                    width .45s ease;
+        overflow:hidden;
+    }
+    .carousel-track {
+        position: relative;      /* важно */
+        width: 100%;
+        height: 100%;
+    }
+    .gallery-item.active {
+        left: 50%;
+        transform: translateX(-50%) scale(1);
+        width: 60%;
+        z-index: 3;
+        opacity: 1;
+    }
+    .gallery-item.prev {
+        left: 0;
+        width: 40%;
+        transform: translateX(0) scale(.96);
+        opacity: .6;
+        filter: brightness(.85);
+        z-index: 2;
+    }
+
+    .gallery-item.next {
+        right: 0;
+        left: auto;
+        width: 40%;
+        transform: translateX(0) scale(.96);
+        opacity: .6;
+        filter: brightness(.85);
+        z-index: 2;
+    }
+    .gallery-item-inner,
+    .gallery-item img,
+    .gallery-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .gallery-item {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        transition: transform .45s ease, opacity .45s ease, left .45s ease, right .45s ease, width .45s ease;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0,0,0,.45);
+    }
+    .gallery-item-inner {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.5s ease;
+        transform: scale(0.7);
+        opacity: 0.3;
+        cursor: pointer;
+    }
+
+    /* Center active item */
+    .gallery-item.active .gallery-item-inner {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        z-index: 2;
+    }
+
+    /* Side items - visible but smaller */
+    .gallery-item.prev .gallery-item-inner,
+    .gallery-item.next .gallery-item-inner {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+
+    /* Items further away */
+    .gallery-item:not(.active):not(.prev):not(.next) .gallery-item-inner {
+        transform: scale(0.65);
+        opacity: 0.2;
+    }
+
+
+    /* Navigation Arrows - Matching target style */
+    .carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 58px;  /* вытянутая форма */
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    .carousel-nav.prev::before {
+        content: "";
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 12px solid rgba(255,255,255,0.6); /* цвет треугольника */
+        display: block;
+        transform: scaleY(1.7);  /* ВЫТЯГИВАЕМ вертикально */
+    }
+    .carousel-nav.next::before {
+        content: "";
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-left: 12px solid rgba(255,255,255,0.6);
+        display: block;
+        transform: scaleY(1.7);
+    }
+    .carousel-nav:hover::before {
+        border-left-color: white !important;
+        border-right-color: white !important;
+    }
+
+
+    .carousel-nav.prev {
+        left: 20px;
+    }
+
+    .carousel-nav.next {
+        right: 20px;
+    }
+
+    .carousel-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+   
+
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .dot.active {
+        background: white;
+        width: 25px;
+        border-radius: 5px;
+    }
+
+    .dot:hover {
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Gallery Placeholder */
+    .gallery-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .gallery-placeholder .emoji {
+        font-size: 80px;
+        margin-bottom: 20px;
+    }
+
+    .gallery-placeholder .text {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    /* Upcoming Events Section - Orange header like target */
+    .upcoming-section {
+        background: #ff9a00;
+        padding: 0;
+    }
+
+    .upcoming-header {
+        color: white;
+        font-size: 2rem;
+        font-weight: 600;
+        padding: 30px 40px;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .upcoming-content {
+        background: white;
+        padding: 40px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+
+    /* Upcoming Event Cards - Matching target design */
+    .upcoming-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+        background: #f8f8f8;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .upcoming-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        background: white;
+        text-decoration: none;
+    }
+
+    .upcoming-card-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    /* Color gradients for cards like in target */
+    .upcoming-card:nth-child(1) .upcoming-card-icon {
+        background: linear-gradient(135deg, #ff6b6b, #ff8787);
+    }
+
+    .upcoming-card:nth-child(2) .upcoming-card-icon {
+        background: linear-gradient(135deg, #d4a574, #f0d078);
+    }
+
+    .upcoming-card:nth-child(3) .upcoming-card-icon {
+        background: linear-gradient(135deg, #b565d8, #d279ee);
+    }
+
+    .upcoming-card-icon img {
+        width: 55%;
+        height: 55%;
+        filter: brightness(0) invert(1);
+        object-fit: contain;
+    }
+
+    .upcoming-card-details {
+        flex-grow: 1;
+    }
+
+    .upcoming-card-name {
+        font-weight: 700;
+        font-size: 18px;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .upcoming-card-link {
+        color: #666;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .upcoming-card:hover .upcoming-card-link {
+        color: #ff9a00;
+        text-decoration: underline;
+    }
+
+    .upcoming-card-date {
+        color: #999;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    /* Lightbox Modal */
+    .lightbox {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        cursor: zoom-out;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .lightbox-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .lightbox-content img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 30px;
+        right: 50px;
+        color: white;
+        font-size: 45px;
+        font-weight: 300;
+        cursor: pointer;
+        z-index: 10000;
+        transition: all 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        color: #ff9a00;
+        transform: scale(1.2) rotate(90deg);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .events-container {
+            padding: 20px;
+        }
+        
+        .gallery-carousel {
+            height: 400px;
+        }
+
+        .carousel-track {
+            padding: 0 calc(50% - 200px);
+        }
+
+        .gallery-item {
+            flex: 0 0 300px;
+        }
+
+        .carousel-nav.prev { left: 10px; }
+        .carousel-nav.next { right: 10px; }
+
+        .upcoming-content {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .events-container {
+            padding: 15px;
+        }
+        
+        .events-title {
+            font-size: 1.8rem;
+        }
+        
+        .gallery-carousel {
+            height: 350px;
+        }
+
+        .carousel-track {
+            padding: 0 calc(50% - 150px);
+        }
+
+        .gallery-item {
+            flex: 0 0 260px;
+        }
+
+        .gallery-item.prev .gallery-item-inner,
+        .gallery-item.next .gallery-item-inner {
+            transform: scale(0.7);
+            opacity: 0.5;
+        }
+        
+        .carousel-nav {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+        
+        .upcoming-content {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 25px 20px;
+        }
+
+        .event-tab {
+            font-size: 13px;
+            padding: 10px 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .gallery-carousel {
+            height: 280px;
+        }
+
+        .carousel-track {
+            padding: 0 calc(50% - 120px);
+        }
+
+        .gallery-item {
+            flex: 0 0 220px;
+            padding: 0 8px;
+        }
+
+        .gallery-item.prev .gallery-item-inner,
+        .gallery-item.next .gallery-item-inner {
+            transform: scale(0.65);
+            opacity: 0.4;
+        }
+
+        .carousel-nav.prev { left: 5px; }
+        .carousel-nav.next { right: 5px; }
+
+        .carousel-nav {
+            width: 35px;
+            height: 35px;
+            font-size: 16px;
+        }
+
+        
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-container">
+    <div class="events-wrapper">
+        <!-- Previous Events Section -->
+        <div class="previous-events-section">
+            <h1 class="events-title">Previous Events</h1>
+            
+            <!-- Event Tabs -->
+            <div class="event-tabs-container">
+                {% if past_events %}
+                    {% for event in past_events %}
+                        <button class="event-tab {% if forloop.first %}active{% endif %}" 
+                                data-event-id="{{ event.id }}"
+                                data-event-code="{{ event.code }}">
+                            {{ event.display_name|default:event.title }}
+                        </button>
+                    {% endfor %}
+                {% else %}
+                    <button class="event-tab active" data-event-id="0">No Events Yet</button>
+                {% endif %}
+            </div>
+            
+            <!-- Photo Gallery Carousel -->
+            <div class="gallery-carousel">
+                <button class="carousel-nav prev" onclick="changeSlide(-1)" aria-label="Previous"></button>
+                <button class="carousel-nav next" onclick="changeSlide(1)" aria-label="Next"></button>
+
+                
+                <div class="carousel-wrapper">
+                    <div class="carousel-track" id="galleryTrack">
+                        {% if past_events %}
+                            {% for event in past_events %}
+                                {% if event.photos.all %}
+                                    {% for photo in event.photos.all %}
+                                        <div class="gallery-item" 
+                                             data-event-id="{{ event.id }}">
+                                            <div class="gallery-item-inner"
+                                                 onclick="if(this.parentElement.classList.contains('active')) openLightbox('{{ photo.image.url }}')">
+                                                {% if photo.is_video %}
+                                                    <video src="{{ photo.image.url }}" muted loop></video>
+                                                {% else %}
+                                                    <img src="{{ photo.image.url }}" alt="{{ event.title }} - {{ photo.caption }}">
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="gallery-item" data-event-id="{{ event.id }}">
+                                        <div class="gallery-item-inner">
+                                            <div class="gallery-placeholder">
+                                                <div class="emoji">📸</div>
+                                                <div class="text">No Photos for {{ event.code }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="gallery-item active" data-event-id="0">
+                                <div class="gallery-item-inner">
+                                    <div class="gallery-placeholder">
+                                        <div class="emoji">🎉</div>
+                                        <div class="text">No Events Yet</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+             
+            </div>
+        </div>
+
+        <!-- Upcoming Events Section -->
+        <div class="upcoming-section">
+            <div class="upcoming-header">Upcoming Events</div>
+            
+            <div class="upcoming-content">
+                {% if upcoming_events %}
+                    {% for event in upcoming_events|slice:":3" %}
+                        <a href="{{ event.get_absolute_url }}" class="upcoming-card">
+                            <div class="upcoming-card-icon">
+                                <img src="{% static 'blog/logo.png' %}" alt="Brush Bunni Logo">
+                            </div>
+                            <div class="upcoming-card-details">
+                                <div class="upcoming-card-name">{{ event.title }}</div>
+                                <div class="upcoming-card-link">Learn More</div>
+                                {% if event.date %}
+                                    <div class="upcoming-card-date">
+                                        {{ event.date|date:"F j, Y" }}
+                                        {% if event.start_time %} • {{ event.start_time|time:"g:i A" }}{% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                    
+                {% else %}
+                    <p style="color:white; padding:20px;">No upcoming events</p>
+                    
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close" onclick="closeLightbox()">×</span>
+    <div class="lightbox-content">
+        <img id="lightboxImg" src="" alt="">
+    </div>
+</div>
+
+<script>
+let currentSlide = 0;
+let allSlides = [];
+let visibleSlides = [];
+let currentEventId = null;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    allSlides = Array.from(document.querySelectorAll('.gallery-item'));
+    
+    // Set initial event from first tab
+    const firstTab = document.querySelector('.event-tab.active');
+    if (firstTab) {
+        currentEventId = firstTab.getAttribute('data-event-id');
+        updateVisibleSlides();
+    }
+    
+    updateCarousel();
+    
+    // Tab switching
+    const tabs = document.querySelectorAll('.event-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Update active tab
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Switch to this event's photos
+            currentEventId = this.getAttribute('data-event-id');
+            currentSlide = 0;
+            updateVisibleSlides();
+            updateCarousel();
+        });
+    });
+    
+    
+});
+
+function updateVisibleSlides() {
+    visibleSlides = [];
+    
+    allSlides.forEach(slide => {
+        const slideEventId = slide.getAttribute('data-event-id');
+        if (slideEventId === currentEventId) {
+            slide.style.display = 'block';
+            visibleSlides.push(slide);
+        } else {
+            slide.style.display = 'none';
+        }
+    });
+    
+    // Reset slide index if needed
+    if (currentSlide >= visibleSlides.length) {
+        currentSlide = 0;
+    }
+    
+    // Create/update dots for visible slides
+    createDots();
+}
+
+function changeSlide(direction) {
+    if (visibleSlides.length === 0) return;
+    
+    currentSlide += direction;
+    
+    // Wrap around for continuous carousel
+    if (currentSlide < 0) {
+        currentSlide = visibleSlides.length - 1;
+    } else if (currentSlide >= visibleSlides.length) {
+        currentSlide = 0;
+    }
+    
+    updateCarousel();
+}
+
+function goToSlide(index) {
+    currentSlide = index;
+    updateCarousel();
+}
+
+function updateCarousel() {
+    if (visibleSlides.length === 0) return;
+
+    // индексы "соседей" с зацикливанием
+    const prevIndex = (currentSlide - 1 + visibleSlides.length) % visibleSlides.length;
+    const nextIndex = (currentSlide + 1) % visibleSlides.length;
+
+    visibleSlides.forEach((slide, index) => {
+        slide.classList.remove('active', 'prev', 'next');
+
+        if (index === currentSlide) {
+            slide.classList.add('active');
+        } else if (index === prevIndex) {
+            slide.classList.add('prev');
+        } else if (index === nextIndex) {
+            slide.classList.add('next');
+        }
+    });
+    
+   
+    
+    // Update navigation buttons
+    const prevBtn = document.querySelector('.carousel-nav.prev');
+    const nextBtn = document.querySelector('.carousel-nav.next');
+    
+    if (prevBtn) prevBtn.disabled = false;
+    if (nextBtn) nextBtn.disabled = false;
+}
+
+// Add resize listener to update carousel on window resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+        updateCarousel();
+    }, 250);
+});
+
+function createDots() {
+    const dotsContainer = document.getElementById('carouselDots');
+    if (!dotsContainer) return;
+    
+    dotsContainer.innerHTML = '';
+    
+    if (visibleSlides.length <= 1) return;
+    
+    for (let i = 0; i < visibleSlides.length; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        if (i === currentSlide) dot.classList.add('active');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+}
+
+function updateDots() {
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+    });
+}
+
+// Lightbox
+function openLightbox(imageSrc) {
+    if (!imageSrc) return;
+    
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    
+    lightboxImg.src = imageSrc;
+    lightbox.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    lightbox.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') changeSlide(-1);
+    if (e.key === 'ArrowRight') changeSlide(1);
+    if (e.key === 'Escape') closeLightbox();
+});
+
+// Touch support for mobile
+let touchStartX = 0;
+let touchEndX = 0;
+
+const carousel = document.querySelector('.gallery-carousel');
+if (carousel) {
+    carousel.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    carousel.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, { passive: true });
+}
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    if (touchEndX < touchStartX - swipeThreshold) changeSlide(1); // Swipe left
+    if (touchEndX > touchStartX + swipeThreshold) changeSlide(-1); // Swipe right
+}
+
+// Optional: Auto-play carousel (uncomment to enable)
+/*
+let autoplayInterval;
+function startAutoplay() {
+    autoplayInterval = setInterval(() => {
+        if (!document.hidden) changeSlide(1);
+    }, 4000);
+}
+
+function stopAutoplay() {
+    clearInterval(autoplayInterval);
+}
+
+// Start autoplay and pause on hover
+startAutoplay();
+carousel.addEventListener('mouseenter', stopAutoplay);
+carousel.addEventListener('mouseleave', startAutoplay);
+*/
+</script>
+{% endblock %}

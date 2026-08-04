@@ -4,7 +4,9 @@
 <head>
   <meta charset="utf-8">
   <title>{% block title %}Brush Bunni{% endblock %}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 
@@ -15,13 +17,72 @@
       min-height: 100vh;
       font-family: 'Inter', sans-serif;
       overflow-y: auto;
+      overflow-x: hidden; /* guard against accidental sideways scroll on mobile */
     }
 
     body {
-      background-image: url("{% static bg_image|default:'blog/default_bg.jpg' %}");
+      background-color: #2b2b2b; /* fallback while the image loads / if it fails */
       background-size: cover;
       background-position: center;
+      background-repeat: no-repeat;
       display: flex;
+    }
+
+    /* Per-page backgrounds.
+       JPEG line first = fallback for old browsers that ignore image-set.
+       image-set line = WebP for modern browsers, JPEG for those without WebP. */
+    body.page-home {
+      background-image: url("{% static 'blog/bg_about.jpg' %}");
+      background-image: image-set(url("{% static 'blog/bg_about.webp' %}") type("image/webp"), url("{% static 'blog/bg_about.jpg' %}") type("image/jpeg"));
+    }
+    body.page-community {
+      background-image: url("{% static 'blog/bg_community.jpg' %}");
+      background-image: image-set(url("{% static 'blog/bg_community.webp' %}") type("image/webp"), url("{% static 'blog/bg_community.jpg' %}") type("image/jpeg"));
+    }
+    body.page-be_online {
+      background-image: url("{% static 'blog/bg_online.jpg' %}");
+      background-image: image-set(url("{% static 'blog/bg_online.webp' %}") type("image/webp"), url("{% static 'blog/bg_online.jpg' %}") type("image/jpeg"));
+    }
+    body.page-events {
+      background-image: url("{% static 'blog/bg_events.jpg' %}");
+      background-image: image-set(url("{% static 'blog/bg_events.webp' %}") type("image/webp"), url("{% static 'blog/bg_events.jpg' %}") type("image/jpeg"));
+    }
+    body.page-shop,
+    body.page-project_bunni {
+      background-image: url("{% static 'blog/bg_shop.jpg' %}");
+      background-image: image-set(url("{% static 'blog/bg_shop.webp' %}") type("image/webp"), url("{% static 'blog/bg_shop.jpg' %}") type("image/jpeg"));
+    }
+    /* These two are already small — plain JPEG, no WebP variant needed. */
+    body.page-members {
+      background-image: url("{% static 'blog/bg_members.jpg' %}");
+    }
+    body.page-contact {
+      background-image: url("{% static 'blog/bg_contact.jpg' %}");
+    }
+
+    /* Lighter backgrounds on phones (~1200px wide instead of 1920px) */
+    @media (max-width: 768px) {
+      body.page-home {
+        background-image: url("{% static 'blog/bg_about-mobile.jpg' %}");
+        background-image: image-set(url("{% static 'blog/bg_about-mobile.webp' %}") type("image/webp"), url("{% static 'blog/bg_about-mobile.jpg' %}") type("image/jpeg"));
+      }
+      body.page-community {
+        background-image: url("{% static 'blog/bg_community-mobile.jpg' %}");
+        background-image: image-set(url("{% static 'blog/bg_community-mobile.webp' %}") type("image/webp"), url("{% static 'blog/bg_community-mobile.jpg' %}") type("image/jpeg"));
+      }
+      body.page-be_online {
+        background-image: url("{% static 'blog/bg_online-mobile.jpg' %}");
+        background-image: image-set(url("{% static 'blog/bg_online-mobile.webp' %}") type("image/webp"), url("{% static 'blog/bg_online-mobile.jpg' %}") type("image/jpeg"));
+      }
+      body.page-events {
+        background-image: url("{% static 'blog/bg_events-mobile.jpg' %}");
+        background-image: image-set(url("{% static 'blog/bg_events-mobile.webp' %}") type("image/webp"), url("{% static 'blog/bg_events-mobile.jpg' %}") type("image/jpeg"));
+      }
+      body.page-shop,
+      body.page-project_bunni {
+        background-image: url("{% static 'blog/bg_shop-mobile.jpg' %}");
+        background-image: image-set(url("{% static 'blog/bg_shop-mobile.webp' %}") type("image/webp"), url("{% static 'blog/bg_shop-mobile.jpg' %}") type("image/jpeg"));
+      }
     }
 
     /* ÐŸÐ¾Ð»ÑƒÐ¿Ñ€Ð¾Ð·Ñ€Ð°Ñ‡Ð½Ñ‹Ð¹ Ð¿Ñ€Ð°Ð²Ñ‹Ð¹ ÑÐºÑ€Ð¾Ð»Ð»Ð±Ð°Ñ€ */
@@ -253,6 +314,99 @@
     .content-box::-webkit-scrollbar-thumb:hover {
       background-color: rgba(0, 0, 0, 0.5);
     }
+
+    /* ===== Mobile menu controls (hidden on desktop) ===== */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: max(14px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      z-index: 1100;
+      width: 46px;
+      height: 46px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      padding: 0;
+    }
+    .menu-toggle span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      margin: 4px auto;
+      background: #fff;
+      border-radius: 2px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    /* Animate the burger into an X when the menu is open */
+    body.menu-open .menu-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    body.menu-open .menu-toggle span:nth-child(2) { opacity: 0; }
+    body.menu-open .menu-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 900;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    /* ===== Mobile layout ===== */
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+
+      .sidebar {
+        width: 260px;
+        background-color: rgba(20, 20, 20, 0.96);
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        padding-top: calc(70px + env(safe-area-inset-top)); /* clear the burger + notch */
+      }
+      body.menu-open .sidebar { transform: translateX(0); }
+
+      .sidebar-overlay { display: block; pointer-events: none; }
+      body.menu-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+
+      /* The vertical white divider only makes sense next to the fixed desktop menu */
+      .menu-container::after { display: none; }
+
+      .logo { padding-left: 24px; }
+      .logo img { height: 120px; }
+      .nav-link { font-size: 1.3rem; padding: 8px 24px; }
+
+      /* Content takes the full width and scrolls with the page, not in a fixed box */
+      .content { margin-left: 0; overflow: visible; }
+      .content-box,
+      body.page-events .content-box {
+        position: static;
+        left: auto;
+        width: auto;
+        max-width: 100%;
+        max-height: none;
+        margin: 70px 14px 24px;
+        overflow: visible;
+        background-color: rgba(255, 255, 255, 0.92);
+      }
+
+      /* The custom desktop scrollbar is tied to the fixed content box — hide it */
+      .content-scrollbar { display: none; }
+    }
+
+    /* ===== Narrow phones ===== */
+    @media (max-width: 480px) {
+      .content-box,
+      body.page-events .content-box {
+        margin: 62px 10px 20px;
+        padding: 20px;
+        border-radius: 12px;
+      }
+      .logo img { height: 100px; }
+      .nav-link { font-size: 1.2rem; padding: 8px 20px; }
+    }
   </style>
 {% block extra_css %}{% endblock %}
 </head>
@@ -260,8 +414,14 @@
 
 <body class="page-{{ current_page }}">
 
+  <!-- Mobile menu toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
   <!-- Sidebar -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div>
       <div class="logo">
         <img src="{% static 'blog/logo.png' %}" alt="Brush Bunni Logo">
@@ -305,6 +465,30 @@
   </div>
 
   <script>
+  // Mobile menu: toggle the off-canvas sidebar
+  (function () {
+    const body = document.body;
+    const toggle = document.getElementById("menuToggle");
+    const overlay = document.getElementById("sidebarOverlay");
+    const sidebar = document.getElementById("sidebar");
+    if (!toggle || !overlay || !sidebar) return;
+
+    function setOpen(open) {
+      body.classList.toggle("menu-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    toggle.addEventListener("click", () => setOpen(!body.classList.contains("menu-open")));
+    overlay.addEventListener("click", () => setOpen(false));
+    // Close when a menu link is tapped (single-page feel on mobile)
+    sidebar.querySelectorAll(".nav-link").forEach((link) =>
+      link.addEventListener("click", () => setOpen(false))
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setOpen(false);
+    });
+  })();
+
   // Custom scrollbar functionality
   function initCustomScrollbar() {
     const contentBox = document.querySelector(".content-box");

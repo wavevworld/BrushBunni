@@ -1,2 +1,9 @@
 # Local backups of pre-optimization original images (not for deploy)
 _image_originals/
+
+# Local virtualenv
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc

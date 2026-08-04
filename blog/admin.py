@@ -66,7 +66,8 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ['event_type', 'short_description', 'description',
-                  'date', 'start_time', 'end_time', 'location', 'is_online', 'note_url']
+                  'date', 'start_time', 'end_time', 'location', 'is_online',
+                  'note_url', 'registration_url']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
@@ -75,6 +76,7 @@ class EventForm(forms.ModelForm):
             'short_description': forms.TextInput(attrs={'placeholder': 'Brief description'}),
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Details...'}),
             'note_url': forms.URLInput(attrs={'placeholder': 'https://note.com/brushbunni/n/...'}),
+            'registration_url': forms.URLInput(attrs={'placeholder': 'https://forms.gle/... (sign-up form)'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -141,6 +143,7 @@ class EventAdmin(admin.ModelAdmin):
                 'short_description',
                 'description',
                 'note_url',
+                'registration_url',
                 'upload_photos',
             ],
         }),

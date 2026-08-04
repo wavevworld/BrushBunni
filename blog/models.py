@@ -1,8 +1,44 @@
+from io import BytesIO
+
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+
+from PIL import Image, ImageOps
+
+
+def optimize_image_field(image_field, max_width=1600, quality=82):
+    """Downscale + re-encode a freshly uploaded image in place.
+
+    Keeps the same file name so DB paths stay valid. Silently skips
+    non-image files (e.g. uploaded videos) and anything Pillow can't open.
+    Call with save=False semantics: it only rewrites the FieldFile content.
+    """
+    name = (image_field.name or "").lower()
+    if not name.endswith((".jpg", ".jpeg", ".png")):
+        return  # videos / webp / unknown — leave untouched
+    try:
+        image_field.open()
+        img = Image.open(image_field)
+        img = ImageOps.exif_transpose(img)  # honour camera orientation
+    except Exception:
+        return
+
+    if img.width > max_width:
+        height = round(img.height * max_width / img.width)
+        img = img.resize((max_width, height))
+
+    buffer = BytesIO()
+    if name.endswith(".png"):
+        img.save(buffer, format="PNG", optimize=True)
+    else:
+        img.convert("RGB").save(
+            buffer, format="JPEG", quality=quality, optimize=True, progressive=True
+        )
+    image_field.save(image_field.name, ContentFile(buffer.getvalue()), save=False)
 
 
 # =============================================================================
@@ -45,6 +81,9 @@ class Event(models.Model):
     max_participants = models.PositiveIntegerField(blank=True, null=True)
     registration_required = models.BooleanField(default=False)
     registration_deadline = models.DateTimeField(blank=True, null=True)
+    registration_url = models.URLField(
+        max_length=500, blank=True,
+        help_text="Sign-up link (e.g. Google Form) shown as a Register button")
     
     # Status and ordering
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='past')
@@ -104,9 +143,23 @@ class EventPhoto(models.Model):
         verbose_name = "Event Photo"
         verbose_name_plural = "Event Photos"
 
+    def save(self, *args, **kwargs):
+        # Compress only freshly uploaded images (never re-compress on plain re-saves).
+        if self.image and self._image_is_new():
+            optimize_image_field(self.image, max_width=1600, quality=82)
+        super().save(*args, **kwargs)
+
+    def _image_is_new(self):
+        if not self.pk:
+            return True
+        try:
+            return EventPhoto.objects.get(pk=self.pk).image.name != self.image.name
+        except EventPhoto.DoesNotExist:
+            return True
+
     def __str__(self):
         return f"Photo for {self.event.code}"
-    
+
     def is_video(self):
         if self.image:
             video_extensions = ['.mp4', '.mov', '.webm', '.avi']
@@ -155,6 +208,20 @@ class BBNote(models.Model):
         ordering = ['-is_pinned', 'order', '-published_date', '-created_at']
         verbose_name = "BB Note"
         verbose_name_plural = "BB Notes"
+
+    def save(self, *args, **kwargs):
+        # Thumbnails render tiny (56px), so 400px is plenty.
+        if self.thumbnail and self._thumbnail_is_new():
+            optimize_image_field(self.thumbnail, max_width=400, quality=85)
+        super().save(*args, **kwargs)
+
+    def _thumbnail_is_new(self):
+        if not self.pk:
+            return True
+        try:
+            return BBNote.objects.get(pk=self.pk).thumbnail.name != self.thumbnail.name
+        except BBNote.DoesNotExist:
+            return True
 
     def __str__(self):
         return self.title

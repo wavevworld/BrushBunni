@@ -207,6 +207,27 @@
         color: white;
         text-decoration: none;
     }
+
+    /* Sign-up CTA (links to the event's registration form) */
+    .register-button {
+        background: #ff9a00;
+        color: #fff;
+        text-decoration: none;
+        padding: 14px 28px;
+        border-radius: 25px;
+        display: inline-block;
+        font-weight: 700;
+        font-size: 1.05rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(255, 154, 0, 0.35);
+    }
+
+    .register-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(255, 154, 0, 0.5);
+        color: #fff;
+        text-decoration: none;
+    }
     
     /* Related events */
     .related-events {
@@ -461,12 +482,17 @@
             <p>{{ event.short_description|default:"Join us for this amazing community event!" }}</p>
         {% endif %}
         
-        {% if event.registration_required %}
+        {% if event.registration_deadline %}
             <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(45deg, #667eea, #f093fb); color: white; border-radius: 10px;">
-                <strong>Registration Required!</strong>
-                {% if event.registration_deadline %}
-                    <br>Deadline: {{ event.registration_deadline|date:"F j, Y g:i A" }}
-                {% endif %}
+                <strong>Registration deadline:</strong>
+                {{ event.registration_deadline|date:"F j, Y g:i A" }}
+            </div>
+        {% endif %}
+
+        {% if event.registration_url %}
+            <div style="margin-top: 1.5rem;">
+                <a href="{{ event.registration_url }}" target="_blank" rel="noopener"
+                   class="register-button">📝 Sign up for this event ↗</a>
             </div>
         {% endif %}
     </div>

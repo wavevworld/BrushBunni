@@ -14,7 +14,7 @@ from django import forms
 from django.http import JsonResponse
 from django.urls import path
 
-from .models import Event, EventPhoto, BBNote
+from .models import Event, EventPhoto, BBNote, ContactMessage
 
 
 # ─── Hide unnecessary sidebar items ─────────────────────────────────────────
@@ -391,5 +391,32 @@ class BBNoteAdmin(admin.ModelAdmin):
     class Media:
         css = {'all': ['admin/css/brushbunni.css']}
         js = ['admin/js/brushbunni.js']
+
+
+# =============================================================================
+# CONTACT MESSAGES ADMIN
+# =============================================================================
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ['subject', 'name', 'email', 'is_read', 'created_at']
+    list_filter = ['is_read', 'created_at']
+    list_editable = ['is_read']
+    search_fields = ['name', 'email', 'subject', 'message']
+    readonly_fields = ['name', 'email', 'subject', 'message', 'created_at']
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
+    actions = ['mark_read', 'mark_unread']
+
+    @admin.action(description="Mark selected as read")
+    def mark_read(self, request, queryset):
+        queryset.update(is_read=True)
+
+    @admin.action(description="Mark selected as unread")
+    def mark_unread(self, request, queryset):
+        queryset.update(is_read=False)
+
+    def has_add_permission(self, request):
+        return False  # messages arrive from the website, never added by hand
 
 

@@ -1,12 +1,32 @@
 # views.py — Updated with BB Notes support
 
+from django import forms
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
+from django.contrib import messages
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.db import models
 
-from .models import Post, Event, EventPhoto, EventImage, BBNote
+from .models import Post, Event, EventPhoto, EventImage, BBNote, ContactMessage
+
+
+class ContactForm(forms.ModelForm):
+    # Honeypot: real users never see or fill this; bots tend to fill every field.
+    website = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'subject', 'message']
+        widgets = {
+            'name': forms.TextInput(attrs={'placeholder': 'Your name'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'you@example.com'}),
+            'subject': forms.TextInput(attrs={'placeholder': "What's this about?"}),
+            'message': forms.Textarea(attrs={'placeholder': 'Your message...', 'rows': 6}),
+        }
+
+    def is_spam(self):
+        return bool(self.data.get('website'))
 
 # Safe imports for optional models
 try:
@@ -138,6 +158,19 @@ def contact(request):
         'current_page': 'contact',
         'bg_image': 'blog/bg_contact.jpg',
     })
+
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            # Drop bot submissions silently (honeypot filled) but pretend success.
+            if not form.is_spam():
+                form.save()
+            messages.success(request, "Thanks! Your message has been sent — we'll get back to you soon.")
+            return redirect('contact')
+    else:
+        form = ContactForm()
+
+    context['form'] = form
     return render(request, 'blog/contact.html', context)
 
 

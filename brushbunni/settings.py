@@ -20,13 +20,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-iwifad*kl2dp&8at6=j9qr2!&e=)jbi#c&t(l*gvq-x82ev(@l'
+# Read secrets/flags from the environment, with safe defaults so a plain
+# deploy keeps working until these env vars are set on the server.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-iwifad*kl2dp&8at6=j9qr2!&e=)jbi#c&t(l*gvq-x82ev(@l',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Defaults to True; set DJANGO_DEBUG=False in production to turn it off.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() != 'false'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS',
+    'brushbunni.com,www.brushbunni.com,localhost,127.0.0.1',
+).split(',')
+
+# Required for admin/form POSTs over HTTPS once DEBUG is off (Django 4+).
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'https://brushbunni.com,https://www.brushbunni.com',
+).split(',')
 
 
 # Application definition
@@ -44,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # serve static with compression + caching
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,6 +142,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Enhanced: Static files for production (when you deploy)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise: compress collected static files and serve them with caching headers.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -156,7 +176,7 @@ JAZZMIN_SETTINGS = {
     "site_brand": "BrushBunni",
     "welcome_sign": "Welcome to BrushBunni Admin",
     "copyright": "BrushBunni Art Community",
-    "search_model": ["blog.Event", "blog.EventPhoto"],
+    "search_model": ["blog.Event"],
     "show_sidebar": True,
     "navigation_expanded": True,
     "hide_apps": [],
@@ -207,11 +227,19 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
-# Enhanced: Security settings for production (commented out for development)
-# Uncomment these when you deploy:
-# SECURE_BROWSER_XSS_FILTER = True
-# SECURE_CONTENT_TYPE_NOSNIFF = True
-# X_FRAME_OPTIONS = 'DENY'
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+# Production hardening — applied only when DEBUG is off. The HTTPS-dependent
+# parts stay behind DJANGO_HTTPS so turning them on can't lock you out before
+# TLS + a proxy that sets X-Forwarded-Proto are confirmed on the server.
+if not DEBUG:
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+    if os.environ.get('DJANGO_HTTPS', 'False').lower() == 'true':
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        SECURE_SSL_REDIRECT = True
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+        SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '31536000'))
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True

@@ -14,7 +14,7 @@ from django import forms
 from django.http import JsonResponse
 from django.urls import path
 
-from .models import Event, EventPhoto, BBNote, ContactMessage
+from .models import Event, EventPhoto, BBNote, ContactMessage, Member, PageContent
 
 
 # ─── Hide unnecessary sidebar items ─────────────────────────────────────────
@@ -48,6 +48,33 @@ class MultiFileField(forms.FileField):
         if isinstance(data, (list, tuple)):
             return [super(MultiFileField, self).clean(d, initial) for d in data]
         return super().clean(data, initial)
+
+
+# =============================================================================
+# FILTERS
+# =============================================================================
+
+class StatusFilter(admin.SimpleListFilter):
+    """Upcoming/Past filter computed from the date.
+
+    `parameter_name` is deliberately plain 'status': the tab strip rendered by
+    admin/js/brushbunni.js links to ?status=past / ?status=upcoming, and those
+    links must keep working now that the stored status column is gone.
+    """
+
+    title = "status"
+    parameter_name = "status"
+
+    def lookups(self, request, model_admin):
+        return [('upcoming', 'Upcoming'), ('past', 'Past')]
+
+    def queryset(self, request, queryset):
+        today = timezone.localdate()
+        if self.value() == 'upcoming':
+            return queryset.filter(date__gte=today)
+        if self.value() == 'past':
+            return queryset.filter(date__lt=today)
+        return queryset
 
 
 # =============================================================================
@@ -124,9 +151,12 @@ class EventAdmin(admin.ModelAdmin):
     inlines = [PhotoInline]
 
     # ── List view ────────────────────────────────────────────────────────────
-    list_display = ['event_thumb', 'event_name', 'type_badge', 'date_display','status_badge']
+    # drag_handle must be listed for admin/js/brushbunni.js to wire up row
+    # dragging — the reorder endpoint below already existed but was unreachable.
+    list_display = ['drag_handle', 'event_thumb', 'event_name', 'type_badge',
+                    'date_display', 'status_badge']
     list_display_links = ['event_thumb', 'event_name']
-    list_filter = ['status', 'event_type', 'is_online', 'date']
+    list_filter = [StatusFilter, 'event_type', 'is_online', 'date']
     search_fields = ['code', 'title', 'short_description', 'location', 'description']
     date_hierarchy = 'date'
     ordering = ['order', '-date']
@@ -148,7 +178,7 @@ class EventAdmin(admin.ModelAdmin):
             ],
         }),
     ]
-    exclude = ['code', 'title', 'slug', 'status', 'is_active', 'order',
+    exclude = ['code', 'title', 'slug', 'is_active', 'order',
                'registration_required', 'registration_deadline', 'max_participants']
 
     # ── Custom AJAX URLs ─────────────────────────────────────────────────────
@@ -301,7 +331,7 @@ class BBNoteAdmin(admin.ModelAdmin):
     list_filter = ['is_pinned', 'is_visible']
     ordering = ['-is_pinned', 'order', '-published_date']
     list_per_page = 50
-    search_fields = []
+    search_fields = ['title', 'description']
     actions = None
 
     fieldsets = [
@@ -418,5 +448,125 @@ class ContactMessageAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # messages arrive from the website, never added by hand
+
+
+# =============================================================================
+# PAGE TEXTS
+# =============================================================================
+
+@admin.register(PageContent)
+class PageContentAdmin(admin.ModelAdmin):
+    list_display = ['page_display', 'heading', 'has_body', 'updated_at']
+    list_display_links = ['page_display', 'heading']
+    ordering = ['page']
+    actions = None
+
+    fieldsets = [
+        (None, {
+            'fields': ['page', 'heading', 'intro', 'body', 'image'],
+        }),
+        ("Button (optional)", {
+            'fields': [('cta_label', 'cta_url')],
+            'description': "Adds a button under the text, e.g. a Discord invite.",
+        }),
+        ("Search engines (optional)", {
+            'fields': ['meta_description'],
+            'classes': ['collapse'],
+        }),
+    ]
+
+    def page_display(self, obj):
+        return obj.get_page_display()
+    page_display.short_description = "Page"
+    page_display.admin_order_field = 'page'
+
+    def has_body(self, obj):
+        return bool(obj.body)
+    has_body.short_description = "Text written"
+    has_body.boolean = True
+
+    def get_readonly_fields(self, request, obj=None):
+        # Which page a row belongs to is fixed once created — changing it would
+        # silently blank one page and overwrite another.
+        return ['page'] if obj else []
+
+    def has_add_permission(self, request):
+        # One row per page; every page already exists after the data migration.
+        return PageContent.objects.count() < len(PageContent.PAGE_CHOICES)
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # the pages themselves are fixed; clear the fields instead
+
+    class Media:
+        css = {'all': ['admin/css/brushbunni.css']}
+        js = ['admin/js/brushbunni.js']
+
+
+# =============================================================================
+# MEMBERS
+# =============================================================================
+
+@admin.register(Member)
+class MemberAdmin(admin.ModelAdmin):
+    list_display = ['drag_handle', 'avatar_thumb', 'name', 'role',
+                    'is_featured', 'is_visible']
+    list_display_links = ['avatar_thumb', 'name']
+    list_editable = ['is_featured', 'is_visible']
+    list_filter = ['role', 'is_visible', 'is_featured']
+    search_fields = ['name', 'bio', 'instagram_handle', 'discord_username']
+    ordering = ['-is_featured', 'order', 'name']
+    actions = None
+
+    fieldsets = [
+        (None, {
+            'fields': [('name', 'role'), 'bio', 'avatar'],
+        }),
+        ("Links (optional)", {
+            'fields': ['portfolio_url', 'instagram_handle', 'discord_username'],
+        }),
+        ("Visibility", {
+            'fields': [('is_featured', 'is_visible')],
+        }),
+    ]
+    exclude = ['order']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        return [
+            path('reorder/', self.admin_site.admin_view(self.reorder_members),
+                 name='reorder_members'),
+        ] + urls
+
+    def reorder_members(self, request):
+        if request.method == 'POST':
+            import json
+            try:
+                data = json.loads(request.body)
+                for i, mid in enumerate(data.get('order', [])):
+                    Member.objects.filter(pk=mid).update(order=i * 10)
+                return JsonResponse({'status': 'ok'})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return JsonResponse({'status': 'error'}, status=405)
+
+    def drag_handle(self, obj):
+        return format_html('<span class="drag-handle" data-id="{}">⋮⋮</span>', obj.pk)
+    drag_handle.short_description = ""
+
+    def avatar_thumb(self, obj):
+        if obj.avatar:
+            return format_html('<img src="{}" class="list-thumb">', obj.avatar.url)
+        return format_html('<span class="list-thumb empty">🐰</span>')
+    avatar_thumb.short_description = ""
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            max_order = Member.objects.aggregate(m=Max('order'))['m'] or 0
+            obj.order = max_order + 10
+        super().save_model(request, obj, form, change)
+
+    class Media:
+        css = {'all': ['admin/css/brushbunni.css']}
+        js = ['admin/js/brushbunni.js']
 
 

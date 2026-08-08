@@ -46,11 +46,6 @@ def optimize_image_field(image_field, max_width=1600, quality=82):
 # =============================================================================
 
 class Event(models.Model):
-    STATUS_CHOICES = [
-        ('upcoming', 'Upcoming'),
-        ('past', 'Past'),
-    ]
-    
     EVENT_TYPES = [
         ('bb_festa', 'BB Festa'),
         ('thunder', 'Thunder Gatherers'),
@@ -85,8 +80,7 @@ class Event(models.Model):
         max_length=500, blank=True,
         help_text="Sign-up link (e.g. Google Form) shown as a Register button")
     
-    # Status and ordering
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='past')
+    # Ordering
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
     
@@ -104,17 +98,24 @@ class Event(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.code)
-        if self.date:
-            today = timezone.now().date()
-            self.status = 'upcoming' if self.date >= today else 'past'
         super().save(*args, **kwargs)
-    
+
     def get_absolute_url(self):
         return reverse('event_detail', kwargs={'slug': self.slug})
-    
+
     @property
     def is_upcoming(self):
-        return self.status == 'upcoming'
+        """Derived from the date, never stored.
+
+        This used to be a `status` column recomputed in save(), which meant an
+        event stayed "Upcoming" for months after it happened until somebody
+        re-saved it in the admin.
+        """
+        return self.date >= timezone.localdate()
+
+    @property
+    def status(self):
+        return 'upcoming' if self.is_upcoming else 'past'
     
     @property
     def display_name(self):
@@ -228,6 +229,63 @@ class BBNote(models.Model):
 
 
 # =============================================================================
+# EDITABLE PAGE CONTENT
+# =============================================================================
+
+class PageContent(models.Model):
+    """Text for the simple pages, so the owner can edit them without a deploy.
+
+    One row per page. Views fall back to sensible defaults when a row is
+    missing, so a page never renders blank.
+    """
+
+    PAGE_CHOICES = [
+        ('home', 'About Us (home page)'),
+        ('community', 'Community'),
+        ('members', 'Members'),
+        ('project_bunni', 'Project Bunni'),
+    ]
+
+    page = models.CharField(max_length=30, choices=PAGE_CHOICES, unique=True)
+    heading = models.CharField(max_length=200, blank=True,
+                               help_text="Big title at the top of the page")
+    intro = models.CharField(max_length=300, blank=True,
+                             help_text="One line under the title (optional)")
+    body = models.TextField(blank=True,
+                            help_text="Main text. Blank lines start a new paragraph.")
+    image = models.ImageField(upload_to='pages/', blank=True, null=True,
+                              help_text="Optional image shown with the text")
+    cta_label = models.CharField(max_length=60, blank=True,
+                                 help_text="Button text, e.g. 'Join our Discord'")
+    cta_url = models.URLField(blank=True, help_text="Where the button links to")
+    meta_description = models.CharField(
+        max_length=300, blank=True,
+        help_text="Search-engine and social-preview description (optional)")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['page']
+        verbose_name = "Page text"
+        verbose_name_plural = "Page texts"
+
+    def save(self, *args, **kwargs):
+        if self.image and self._image_is_new():
+            optimize_image_field(self.image, max_width=1200, quality=85)
+        super().save(*args, **kwargs)
+
+    def _image_is_new(self):
+        if not self.pk:
+            return True
+        try:
+            return PageContent.objects.get(pk=self.pk).image.name != self.image.name
+        except PageContent.DoesNotExist:
+            return True
+
+    def __str__(self):
+        return self.get_page_display()
+
+
+# =============================================================================
 # OTHER MODELS (kept for compatibility)
 # =============================================================================
 
@@ -310,27 +368,52 @@ class Category(models.Model):
 
 
 class Member(models.Model):
+    """A person shown on the Members page.
+
+    Deliberately NOT tied to django.contrib.auth.User: community members are
+    listed on the site but never log in, and requiring a user account for each
+    one made the admin unusable for the site owner.
+    """
+
     ROLE_CHOICES = [
-        ('admin', 'Administrator'),
-        ('moderator', 'Moderator'),
+        ('founder', 'Founder'),
+        ('organizer', 'Organizer'),
         ('artist', 'Artist'),
         ('member', 'Member'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    display_name = models.CharField(max_length=100, blank=True)
-    bio = models.TextField(blank=True)
+    name = models.CharField(max_length=100, help_text="Name shown on the site")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    bio = models.TextField(blank=True, help_text="A short line or two about them")
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    portfolio_url = models.URLField(blank=True)
-    instagram_handle = models.CharField(max_length=100, blank=True)
+    portfolio_url = models.URLField(blank=True, help_text="Portfolio or website")
+    instagram_handle = models.CharField(
+        max_length=100, blank=True, help_text="Without the @")
     discord_username = models.CharField(max_length=100, blank=True)
-    is_featured = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False, help_text="Show first")
+    is_visible = models.BooleanField(default=True, help_text="Show on the website")
+    order = models.PositiveIntegerField(default=0)
     join_date = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-is_featured', 'order', 'name']
+
+    def save(self, *args, **kwargs):
+        # Avatars render at ~160px, so anything above 600px is wasted bytes.
+        if self.avatar and self._avatar_is_new():
+            optimize_image_field(self.avatar, max_width=600, quality=85)
+        super().save(*args, **kwargs)
+
+    def _avatar_is_new(self):
+        if not self.pk:
+            return True
+        try:
+            return Member.objects.get(pk=self.pk).avatar.name != self.avatar.name
+        except Member.DoesNotExist:
+            return True
 
     def __str__(self):
-        return self.display_name or self.user.username
+        return self.name
 
 
 class Gallery(models.Model):

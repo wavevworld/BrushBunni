@@ -1,0 +1,31 @@
+{% comment %}
+  Renders the editable text for a simple page.
+
+  Include with the fallbacks to use when the owner has not filled the page in
+  from the admin yet:
+
+    {% include 'blog/_page_content.html' with default_heading="About Us" default_intro="..." %}
+
+  `content` is the PageContent row (may be None) put in the context by
+  blog.views.page_context.
+{% endcomment %}
+
+<h1 class="page-heading">{{ content.heading|default:default_heading }}</h1>
+
+{% if content.intro or default_intro %}
+  <p class="page-intro">{{ content.intro|default:default_intro }}</p>
+{% endif %}
+
+{% if content.image %}
+  <img class="page-image" src="{{ content.image.url }}" alt="{{ content.heading|default:default_heading }}">
+{% endif %}
+
+{% if content.body %}
+  <div class="page-body">{{ content.body|linebreaks }}</div>
+{% endif %}
+
+{% if content.cta_url and content.cta_label %}
+  <a class="page-cta" href="{{ content.cta_url }}" target="_blank" rel="noopener">
+    {{ content.cta_label }}
+  </a>
+{% endif %}

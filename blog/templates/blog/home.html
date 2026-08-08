@@ -1,6 +1,5 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
-<h1>About Us</h1>
-<p>Welcome to Brush Bunni — where creativity meets community!</p>
+  {% include 'blog/_page_content.html' with default_heading="About Us" default_intro="Welcome to Brush Bunni — where creativity meets community!" %}
 {% endblock %}

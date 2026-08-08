@@ -2,7 +2,13 @@
 {% load static %}
 
 {% block content %}
-  <div style="text-align: center;">
-<img src="{% static 'blog/PJBUNNI.jpg' %}" alt="Project Bunni" style="max-width: 100%; border-radius: 16px;">
-</div>
+  {% include 'blog/_page_content.html' with default_heading="Project Bunni" %}
+
+  {% comment %}
+    The original poster stays as the fallback: it is the whole page today, and
+    it should keep showing until an image is uploaded from the admin.
+  {% endcomment %}
+  {% if not content.image %}
+    <img class="page-image" src="{% static 'blog/PJBUNNI.jpg' %}" alt="Project Bunni">
+  {% endif %}
 {% endblock %}

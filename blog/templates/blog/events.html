@@ -26,9 +26,11 @@
         min-height: 100vh;
     }
 
-    /* Combined wrapper with rounded corners */
+    /* Combined wrapper with rounded corners — one continuous card holding
+       every section (previous events, carousel, upcoming), matching the
+       reference design. */
     .events-wrapper {
-        background: rgba(30, 30, 30, 0.95);
+        background: rgba(26, 26, 28, 0.95);
         backdrop-filter: blur(20px);
         border-radius: 20px;
         overflow: hidden;
@@ -37,316 +39,143 @@
 
     /* Previous Events Section */
     .previous-events-section {
-        padding: 30px 40px 40px;
+        padding: 32px 32px 28px;
     }
 
-    /* Title styling - matching the target */
     .events-title {
-        font-size: 2.5rem;
-        font-weight: 600;
+        font-size: 2.3rem;
+        font-weight: 700;
         color: white;
-        margin: 0 0 10px 0;
-        margin-left: 0;
-        text-align: left;
-        padding-left: 0;
+        margin: 0 0 18px;
         font-family: 'Inter', sans-serif;
     }
 
-    /* Tabs bar */
-    .event-tabs-container {
-        display: flex;
-        align-items: stretch;
-        margin: 0 0 20px -40px;
-        background: #8a7c79;
-        border: 1px solid rgba(255,255,255,.35);
-        border-left: none;
-        border-radius: 0 0 20px 0;
-        padding: 0;
-        overflow: hidden;
-        width: max-content;
+    /* ----- Tabs: rounded pills in a horizontally scrollable row -----
+       There are more past events than fit on one screen, so the strip
+       scrolls instead of overflowing the rounded card (the old fixed-width
+       tab strip broke as soon as an 8th event was added). */
+    .event-tabs-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        margin: 0 -8px 22px;
+        padding: 0 8px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
-
-    /* Tabs */
-    .event-tab {
-        background: transparent;
-        color: rgba(255,255,255,.85);
-        font-size: 13px;
-        font-weight: 600;
-        border: none;
-        padding: 6px 28px 8px;
-        cursor: pointer;
-        white-space: nowrap;
-        position: relative;
-        border-radius: 0;
-    }
-    .event-tab:not(:first-child){
-        border-bottom-left-radius: 18px;
-    }
-    .event-tab:not(:first-child)::before  {
-        content:"";
-        position:absolute;
-        left: -18px;
-        bottom:0;
-        width:18px;
-        height:18px;
-        background:#8a7c79;
-        border-bottom-right-radius:18px;
-        z-index:2;
-    }
-    .event-tab.active {
-        background: #fff;
-        color: #5c5c5c;
-        z-index: 3;
-        border-bottom-right-radius:18px;
-    }
-    .event-tab.active:not(:first-child)::after {
-        content: "";
-        position: absolute;
-        left: 0;              /* внутри активного таба */
-        bottom: 0;
-        width: 18px;
-        height: 18px;
-        background: #fff;
-        border-bottom-left-radius: 18px;
-        z-index: 4;            /* выше всего */
-        pointer-events: none;
-    }
-
-    .event-tab.active:not(:first-child)::before {
-        background: #8a7c79; 
-    }
-    .event-tab.active:not(:first-child){
-        border-bottom-left-radius:18px;
-    }
-    /* левый край полоски (первый таб) */
-    .event-tab:first-child {
-        border-bottom-left-radius: 0;
-    }
-    .event-tab.active:first-child {
-        border-bottom-left-radius: 0;
-    }
-    .event-tab:last-child {
-        border-bottom-right-radius: 18px;
-    }
-    .event-tab.active:last-child {
-        border-bottom-right-radius: 18px;
-    }
-
-    /* focus */
-    .event-tab:focus-visible { 
-        outline:none; 
-    }
-    /* не рисуем разделитель у активной и сразу после неё */
-    .event-tab.active::after,
-    .event-tab.active + .event-tab::after {
+    .event-tabs-scroll::-webkit-scrollbar {
         display: none;
     }
 
-    /* Вертикальный разделитель между табами */
-    .event-tab:not(:first-child)::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 8px;
-        bottom: 8px;
-        width: 1px;
-        background: rgba(255,255,255,0.25);
-        z-index: 1;              /* ниже активной вкладки */
-        pointer-events: none;
+    .event-tabs-container {
+        display: flex;
+        gap: 10px;
+        width: max-content;
     }
 
+    .event-tab {
+        flex: 0 0 auto;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 11px 22px;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
 
-    /* Gallery Carousel - Three Photo Wide View */
-    .gallery-carousel{
+    .event-tab:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .event-tab.active {
+        background: #fff;
+        color: #333;
+        border-color: #fff;
+    }
+
+    /* ----- Photo carousel: three-image peek, centered on the active slide -----
+       Slide position/centering is computed in JS (see updateCarousel) so it
+       stays correct at any viewport width without overlapping neighbours. */
+    .gallery-carousel {
         position: relative;
-        height: 560px;
-        margin: 10px 0 30px;
-        background:#0f0f11;
+        height: 500px;
         border-radius: 18px;
-        overflow:hidden;
-    }
-
-    .carousel-viewport {
-        position: relative;
-        width: 100%;
-        height: 100%;
         overflow: hidden;
+        background: #0f0f11;
     }
 
-    .carousel-wrapper {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-    .gallery-item{
-        position:absolute;
-        top:0;
-        bottom:0;
-        border-radius: 12px;
-        box-shadow: 0 12px 40px rgba(0,0,0,.45);
-        transition: transform .45s ease,
-                    opacity .45s ease,
-                    left .45s ease,
-                    right .45s ease,
-                    width .45s ease;
-        overflow:hidden;
-    }
-    .carousel-track {
-        position: relative;      /* важно */
-        width: 100%;
-        height: 100%;
-    }
-    .gallery-item.active {
-        left: 50%;
-        transform: translateX(-50%) scale(1);
-        width: 60%;
-        z-index: 3;
-        opacity: 1;
-    }
-    .gallery-item.prev {
-        left: 0;
-        width: 40%;
-        transform: translateX(0) scale(.96);
-        opacity: .6;
-        filter: brightness(.85);
-        z-index: 2;
-    }
-
-    .gallery-item.next {
-        right: 0;
-        left: auto;
-        width: 40%;
-        transform: translateX(0) scale(.96);
-        opacity: .6;
-        filter: brightness(.85);
-        z-index: 2;
-    }
-    .gallery-item-inner,
-    .gallery-item img,
-    .gallery-item video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .gallery-item {
+    /* Soft fade over the cropped edges of the peeking side slides, so they
+       read as intentionally partial rather than abruptly cut off. */
+    .gallery-carousel::before,
+    .gallery-carousel::after {
+        content: "";
         position: absolute;
         top: 0;
         bottom: 0;
-        transition: transform .45s ease, opacity .45s ease, left .45s ease, right .45s ease, width .45s ease;
-        overflow: hidden;
-        box-shadow: 0 12px 40px rgba(0,0,0,.45);
+        width: 10%;
+        min-width: 40px;
+        z-index: 5;
+        pointer-events: none;
     }
-    .gallery-item-inner {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #1a1a1a;
-        border-radius: 15px;
-        overflow: hidden;
-        transition: all 0.5s ease;
-        transform: scale(0.7);
-        opacity: 0.3;
-        cursor: pointer;
+    .gallery-carousel::before {
+        left: 0;
+        background: linear-gradient(to right, #0f0f11, transparent);
+    }
+    .gallery-carousel::after {
+        right: 0;
+        background: linear-gradient(to left, #0f0f11, transparent);
     }
 
-    /* Center active item */
-    .gallery-item.active .gallery-item-inner {
-        transform: scale(1);
+    .carousel-viewport {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .carousel-track {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        gap: 18px;
+        will-change: transform;
+    }
+
+    .gallery-slide {
+        flex: 0 0 62%;
+        height: 88%;
+        border-radius: 14px;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0.5;
+        filter: brightness(0.75);
+        transform: scale(0.94);
+        transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .gallery-slide.active {
         opacity: 1;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-        z-index: 2;
+        filter: none;
+        transform: scale(1);
+        cursor: zoom-in;
     }
 
-    /* Side items - visible but smaller */
-    .gallery-item.prev .gallery-item-inner,
-    .gallery-item.next .gallery-item-inner {
-        transform: scale(0.8);
-        opacity: 0.6;
-    }
-
-    /* Items further away */
-    .gallery-item:not(.active):not(.prev):not(.next) .gallery-item-inner {
-        transform: scale(0.65);
-        opacity: 0.2;
-    }
-
-
-    /* Navigation Arrows - Matching target style */
-    .carousel-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 20px;
-        height: 58px;  /* вытянутая форма */
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-    }
-    .carousel-nav.prev::before {
-        content: "";
-        border-top: 8px solid transparent;
-        border-bottom: 8px solid transparent;
-        border-right: 12px solid rgba(255,255,255,0.6); /* цвет треугольника */
+    .gallery-slide img,
+    .gallery-slide video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
         display: block;
-        transform: scaleY(1.7);  /* ВЫТЯГИВАЕМ вертикально */
-    }
-    .carousel-nav.next::before {
-        content: "";
-        border-top: 8px solid transparent;
-        border-bottom: 8px solid transparent;
-        border-left: 12px solid rgba(255,255,255,0.6);
-        display: block;
-        transform: scaleY(1.7);
-    }
-    .carousel-nav:hover::before {
-        border-left-color: white !important;
-        border-right-color: white !important;
     }
 
-
-    .carousel-nav.prev {
-        left: 20px;
-    }
-
-    .carousel-nav.next {
-        right: 20px;
-    }
-
-    .carousel-nav:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-    }
-
-   
-
-    .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-
-    .dot.active {
-        background: white;
-        width: 25px;
-        border-radius: 5px;
-    }
-
-    .dot:hover {
-        background: rgba(255, 255, 255, 0.7);
-    }
-
-    /* Gallery Placeholder */
     .gallery-placeholder {
         width: 100%;
         height: 100%;
@@ -354,71 +183,93 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        gap: 10px;
+        background: linear-gradient(135deg, #6c5ce7, #b06ae6 55%, #f0709b);
         color: white;
+        text-align: center;
+        padding: 0 20px;
     }
 
     .gallery-placeholder .emoji {
-        font-size: 80px;
-        margin-bottom: 20px;
+        font-size: 56px;
     }
 
     .gallery-placeholder .text {
-        font-size: 24px;
+        font-size: 18px;
         font-weight: 600;
     }
 
-    /* Upcoming Events Section - Orange header like target */
+    /* Nav arrows sit in the carousel's own dark background, not on top of
+       the photo content. */
+    .carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: rgba(255, 255, 255, 0.85);
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        line-height: 1;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .carousel-nav:hover {
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+    }
+
+    .carousel-nav.prev { left: 16px; }
+    .carousel-nav.next { right: 16px; }
+
+    .carousel-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    /* ----- Upcoming Events ----- */
     .upcoming-section {
         background: #ff9a00;
-        padding: 0;
     }
 
     .upcoming-header {
         color: white;
-        font-size: 2rem;
-        font-weight: 600;
-        padding: 30px 40px;
-        text-align: left;
+        font-size: 1.7rem;
+        font-weight: 700;
+        padding: 24px 32px;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        font-family: 'Inter', sans-serif;
+        letter-spacing: 0.08em;
     }
 
     .upcoming-content {
         background: white;
-        padding: 40px;
+        padding: 36px 32px 40px;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
+        gap: 28px 24px;
     }
 
-    /* Upcoming Event Cards - Matching target design */
+    /* Minimal card: coloured icon + text, no box/shadow — matches the flat
+       reference design instead of the previous drop-shadowed grey tile. */
     .upcoming-card {
         display: flex;
         align-items: center;
-        gap: 20px;
-        padding: 20px;
-        background: #f8f8f8;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        gap: 18px;
         text-decoration: none;
         color: inherit;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .upcoming-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        background: white;
-        text-decoration: none;
     }
 
     .upcoming-card-icon {
-        width: 80px;
-        height: 80px;
-        border-radius: 15px;
+        width: 74px;
+        height: 74px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -426,18 +277,9 @@
         overflow: hidden;
     }
 
-    /* Color gradients for cards like in target */
-    .upcoming-card:nth-child(1) .upcoming-card-icon {
-        background: linear-gradient(135deg, #ff6b6b, #ff8787);
-    }
-
-    .upcoming-card:nth-child(2) .upcoming-card-icon {
-        background: linear-gradient(135deg, #d4a574, #f0d078);
-    }
-
-    .upcoming-card:nth-child(3) .upcoming-card-icon {
-        background: linear-gradient(135deg, #b565d8, #d279ee);
-    }
+    .upcoming-card:nth-child(3n+1) .upcoming-card-icon { background: #d8846c; }
+    .upcoming-card:nth-child(3n+2) .upcoming-card-icon { background: #c7a83c; }
+    .upcoming-card:nth-child(3n+3) .upcoming-card-icon { background: #a86cd1; }
 
     .upcoming-card-icon img {
         width: 55%;
@@ -447,20 +289,22 @@
     }
 
     .upcoming-card-details {
-        flex-grow: 1;
+        min-width: 0;
     }
 
     .upcoming-card-name {
         font-weight: 700;
-        font-size: 18px;
-        color: #333;
-        margin-bottom: 8px;
+        font-size: 17px;
+        color: #222;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .upcoming-card-link {
-        color: #666;
+        color: #777;
         font-size: 14px;
-        display: inline-block;
     }
 
     .upcoming-card:hover .upcoming-card-link {
@@ -468,10 +312,10 @@
         text-decoration: underline;
     }
 
-    .upcoming-card-date {
+    .upcoming-empty {
+        grid-column: 1 / -1;
         color: #999;
-        font-size: 13px;
-        margin-top: 5px;
+        padding: 10px 0;
     }
 
     /* Lightbox Modal */
@@ -528,105 +372,33 @@
 
     /* Responsive */
     @media (max-width: 1024px) {
-        .events-container {
-            padding: 20px;
-        }
-        
-        .gallery-carousel {
-            height: 400px;
-        }
-
-        .carousel-track {
-            padding: 0 calc(50% - 200px);
-        }
-
-        .gallery-item {
-            flex: 0 0 300px;
-        }
-
-        .carousel-nav.prev { left: 10px; }
-        .carousel-nav.next { right: 10px; }
-
-        .upcoming-content {
-            grid-template-columns: repeat(2, 1fr);
-        }
+        .events-container { padding: 20px; }
+        .gallery-carousel { height: 420px; }
+        .gallery-slide { flex-basis: 74%; }
+        .upcoming-content { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (max-width: 768px) {
-        .events-container {
-            padding: 15px;
-        }
-        
-        .events-title {
-            font-size: 1.8rem;
-        }
-        
-        .gallery-carousel {
-            height: 350px;
-        }
-
-        .carousel-track {
-            padding: 0 calc(50% - 150px);
-        }
-
-        .gallery-item {
-            flex: 0 0 260px;
-        }
-
-        .gallery-item.prev .gallery-item-inner,
-        .gallery-item.next .gallery-item-inner {
-            transform: scale(0.7);
-            opacity: 0.5;
-        }
-        
-        .carousel-nav {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-        }
-        
+        .events-container { padding: 15px; }
+        .events-title { font-size: 1.8rem; }
+        .previous-events-section { padding: 22px 20px 20px; }
+        .gallery-carousel { height: 320px; }
+        .gallery-slide { flex-basis: 84%; }
+        .carousel-nav { width: 38px; height: 38px; font-size: 17px; }
         .upcoming-content {
             grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 25px 20px;
+            gap: 18px;
+            padding: 24px 20px;
         }
-
-        .event-tab {
-            font-size: 13px;
-            padding: 10px 18px;
-        }
+        .event-tab { font-size: 12.5px; padding: 9px 18px; }
     }
 
     @media (max-width: 480px) {
-        .gallery-carousel {
-            height: 280px;
-        }
-
-        .carousel-track {
-            padding: 0 calc(50% - 120px);
-        }
-
-        .gallery-item {
-            flex: 0 0 220px;
-            padding: 0 8px;
-        }
-
-        .gallery-item.prev .gallery-item-inner,
-        .gallery-item.next .gallery-item-inner {
-            transform: scale(0.65);
-            opacity: 0.4;
-        }
-
-        .carousel-nav.prev { left: 5px; }
-        .carousel-nav.next { right: 5px; }
-
-        .carousel-nav {
-            width: 35px;
-            height: 35px;
-            font-size: 16px;
-        }
-
-        
+        .gallery-carousel { height: 260px; }
+        .gallery-slide { flex-basis: 90%; }
+        .carousel-nav.prev { left: 8px; }
+        .carousel-nav.next { right: 8px; }
+        .carousel-nav { width: 34px; height: 34px; font-size: 15px; }
     }
 </style>
 {% endblock %}
@@ -637,101 +409,85 @@
         <!-- Previous Events Section -->
         <div class="previous-events-section">
             <h1 class="events-title">Previous Events</h1>
-            
+
             <!-- Event Tabs -->
-            <div class="event-tabs-container">
-                {% if past_events %}
-                    {% for event in past_events %}
-                        <button class="event-tab {% if forloop.first %}active{% endif %}" 
-                                data-event-id="{{ event.id }}"
-                                data-event-code="{{ event.code }}">
-                            {{ event.display_name|default:event.title }}
-                        </button>
-                    {% endfor %}
-                {% else %}
-                    <button class="event-tab active" data-event-id="0">No Events Yet</button>
-                {% endif %}
+            <div class="event-tabs-scroll">
+                <div class="event-tabs-container">
+                    {% if past_events %}
+                        {% for event in past_events %}
+                            <button class="event-tab {% if forloop.first %}active{% endif %}"
+                                    data-event-id="{{ event.id }}"
+                                    title="{{ event.display_name|default:event.title }}">
+                                {{ event.display_name|default:event.title }}
+                            </button>
+                        {% endfor %}
+                    {% else %}
+                        <button class="event-tab active" data-event-id="0">No Events Yet</button>
+                    {% endif %}
+                </div>
             </div>
-            
+
             <!-- Photo Gallery Carousel -->
             <div class="gallery-carousel">
-                <button class="carousel-nav prev" onclick="changeSlide(-1)" aria-label="Previous"></button>
-                <button class="carousel-nav next" onclick="changeSlide(1)" aria-label="Next"></button>
+                <button class="carousel-nav prev" onclick="changeSlide(-1)" aria-label="Previous">‹</button>
+                <button class="carousel-nav next" onclick="changeSlide(1)" aria-label="Next">›</button>
 
-                
-                <div class="carousel-wrapper">
+                <div class="carousel-viewport">
                     <div class="carousel-track" id="galleryTrack">
                         {% if past_events %}
                             {% for event in past_events %}
                                 {% if event.photos.all %}
                                     {% for photo in event.photos.all %}
-                                        <div class="gallery-item" 
-                                             data-event-id="{{ event.id }}">
-                                            <div class="gallery-item-inner"
-                                                 onclick="if(this.parentElement.classList.contains('active')) openLightbox('{{ photo.image.url }}')">
-                                                {% if photo.is_video %}
-                                                    <video src="{{ photo.image.url }}" muted loop></video>
-                                                {% else %}
-                                                    <img src="{{ photo.image.url }}" alt="{{ event.title }} - {{ photo.caption }}">
-                                                {% endif %}
-                                            </div>
+                                        <div class="gallery-slide" data-event-id="{{ event.id }}"
+                                             onclick="if(this.classList.contains('active')) openLightbox('{{ photo.image.url }}')">
+                                            {% if photo.is_video %}
+                                                <video src="{{ photo.image.url }}" muted loop></video>
+                                            {% else %}
+                                                <img src="{{ photo.image.url }}" alt="{{ event.title }} - {{ photo.caption }}">
+                                            {% endif %}
                                         </div>
                                     {% endfor %}
                                 {% else %}
-                                    <div class="gallery-item" data-event-id="{{ event.id }}">
-                                        <div class="gallery-item-inner">
-                                            <div class="gallery-placeholder">
-                                                <div class="emoji">📸</div>
-                                                <div class="text">No Photos for {{ event.code }}</div>
-                                            </div>
+                                    <div class="gallery-slide" data-event-id="{{ event.id }}">
+                                        <div class="gallery-placeholder">
+                                            <div class="emoji">📸</div>
+                                            <div class="text">No photos for {{ event.code }}</div>
                                         </div>
                                     </div>
                                 {% endif %}
                             {% endfor %}
                         {% else %}
-                            <div class="gallery-item active" data-event-id="0">
-                                <div class="gallery-item-inner">
-                                    <div class="gallery-placeholder">
-                                        <div class="emoji">🎉</div>
-                                        <div class="text">No Events Yet</div>
-                                    </div>
+                            <div class="gallery-slide active" data-event-id="0">
+                                <div class="gallery-placeholder">
+                                    <div class="emoji">🎉</div>
+                                    <div class="text">No events yet</div>
                                 </div>
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                
-             
             </div>
         </div>
 
         <!-- Upcoming Events Section -->
         <div class="upcoming-section">
             <div class="upcoming-header">Upcoming Events</div>
-            
+
             <div class="upcoming-content">
                 {% if upcoming_events %}
                     {% for event in upcoming_events|slice:":3" %}
                         <a href="{{ event.get_absolute_url }}" class="upcoming-card">
                             <div class="upcoming-card-icon">
-                                <img src="{% static 'blog/logo.png' %}" alt="Brush Bunni Logo">
+                                <img src="{% static 'blog/logo.png' %}" alt="">
                             </div>
                             <div class="upcoming-card-details">
-                                <div class="upcoming-card-name">{{ event.title }}</div>
+                                <div class="upcoming-card-name">{{ event.display_name|default:event.title }}</div>
                                 <div class="upcoming-card-link">Learn More</div>
-                                {% if event.date %}
-                                    <div class="upcoming-card-date">
-                                        {{ event.date|date:"F j, Y" }}
-                                        {% if event.start_time %} • {{ event.start_time|time:"g:i A" }}{% endif %}
-                                    </div>
-                                {% endif %}
                             </div>
                         </a>
                     {% endfor %}
-                    
                 {% else %}
-                    <p style="color:white; padding:20px;">No upcoming events</p>
-                    
+                    <p class="upcoming-empty">No upcoming events — check back soon.</p>
                 {% endif %}
             </div>
         </div>
@@ -752,161 +508,95 @@ let allSlides = [];
 let visibleSlides = [];
 let currentEventId = null;
 
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    allSlides = Array.from(document.querySelectorAll('.gallery-item'));
-    
-    // Set initial event from first tab
+    allSlides = Array.from(document.querySelectorAll('.gallery-slide'));
+
     const firstTab = document.querySelector('.event-tab.active');
     if (firstTab) {
         currentEventId = firstTab.getAttribute('data-event-id');
-        updateVisibleSlides();
     }
-    
+    updateVisibleSlides();
     updateCarousel();
-    
-    // Tab switching
+
     const tabs = document.querySelectorAll('.event-tab');
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            // Update active tab
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            
-            // Switch to this event's photos
+            this.scrollIntoView({ inline: 'nearest', behavior: 'smooth', block: 'nearest' });
+
             currentEventId = this.getAttribute('data-event-id');
             currentSlide = 0;
             updateVisibleSlides();
             updateCarousel();
         });
     });
-    
-    
 });
 
 function updateVisibleSlides() {
     visibleSlides = [];
-    
     allSlides.forEach(slide => {
-        const slideEventId = slide.getAttribute('data-event-id');
-        if (slideEventId === currentEventId) {
-            slide.style.display = 'block';
-            visibleSlides.push(slide);
-        } else {
-            slide.style.display = 'none';
-        }
+        const match = slide.getAttribute('data-event-id') === currentEventId;
+        slide.style.display = match ? '' : 'none';
+        // Slides from the event we're leaving keep display:none so they can't
+        // be clicked, but clear 'active' too — otherwise a stray broad query
+        // like `.gallery-slide.active` can still match a leftover from the
+        // previous tab.
+        if (!match) slide.classList.remove('active');
+        if (match) visibleSlides.push(slide);
     });
-    
-    // Reset slide index if needed
-    if (currentSlide >= visibleSlides.length) {
-        currentSlide = 0;
-    }
-    
-    // Create/update dots for visible slides
-    createDots();
+    if (currentSlide >= visibleSlides.length) currentSlide = 0;
 }
 
 function changeSlide(direction) {
     if (visibleSlides.length === 0) return;
-    
-    currentSlide += direction;
-    
-    // Wrap around for continuous carousel
-    if (currentSlide < 0) {
-        currentSlide = visibleSlides.length - 1;
-    } else if (currentSlide >= visibleSlides.length) {
-        currentSlide = 0;
-    }
-    
+    currentSlide = (currentSlide + direction + visibleSlides.length) % visibleSlides.length;
     updateCarousel();
 }
 
-function goToSlide(index) {
-    currentSlide = index;
-    updateCarousel();
-}
-
+// Centers the active slide inside the viewport by measuring real rendered
+// widths — robust at any screen size, unlike a fixed percentage offset,
+// and never lets neighbouring slides overlap the active one.
 function updateCarousel() {
     if (visibleSlides.length === 0) return;
 
-    // индексы "соседей" с зацикливанием
-    const prevIndex = (currentSlide - 1 + visibleSlides.length) % visibleSlides.length;
-    const nextIndex = (currentSlide + 1) % visibleSlides.length;
+    visibleSlides.forEach((slide, i) => slide.classList.toggle('active', i === currentSlide));
 
-    visibleSlides.forEach((slide, index) => {
-        slide.classList.remove('active', 'prev', 'next');
+    const track = document.getElementById('galleryTrack');
+    const viewport = track.parentElement;
+    const active = visibleSlides[currentSlide];
 
-        if (index === currentSlide) {
-            slide.classList.add('active');
-        } else if (index === prevIndex) {
-            slide.classList.add('prev');
-        } else if (index === nextIndex) {
-            slide.classList.add('next');
-        }
-    });
-    
-   
-    
-    // Update navigation buttons
+    const viewportWidth = viewport.clientWidth;
+    const shift = viewportWidth / 2 - (active.offsetLeft + active.offsetWidth / 2);
+    track.style.transform = `translateX(${shift}px)`;
+
     const prevBtn = document.querySelector('.carousel-nav.prev');
     const nextBtn = document.querySelector('.carousel-nav.next');
-    
-    if (prevBtn) prevBtn.disabled = false;
-    if (nextBtn) nextBtn.disabled = false;
+    if (prevBtn) prevBtn.disabled = visibleSlides.length < 2;
+    if (nextBtn) nextBtn.disabled = visibleSlides.length < 2;
 }
 
-// Add resize listener to update carousel on window resize
 let resizeTimer;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-        updateCarousel();
-    }, 250);
+    resizeTimer = setTimeout(updateCarousel, 200);
 });
-
-function createDots() {
-    const dotsContainer = document.getElementById('carouselDots');
-    if (!dotsContainer) return;
-    
-    dotsContainer.innerHTML = '';
-    
-    if (visibleSlides.length <= 1) return;
-    
-    for (let i = 0; i < visibleSlides.length; i++) {
-        const dot = document.createElement('span');
-        dot.className = 'dot';
-        if (i === currentSlide) dot.classList.add('active');
-        dot.onclick = () => goToSlide(i);
-        dotsContainer.appendChild(dot);
-    }
-}
-
-function updateDots() {
-    const dots = document.querySelectorAll('.dot');
-    dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === currentSlide);
-    });
-}
 
 // Lightbox
 function openLightbox(imageSrc) {
     if (!imageSrc) return;
-    
     const lightbox = document.getElementById('lightbox');
     const lightboxImg = document.getElementById('lightboxImg');
-    
     lightboxImg.src = imageSrc;
     lightbox.style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox() {
-    const lightbox = document.getElementById('lightbox');
-    lightbox.style.display = 'none';
+    document.getElementById('lightbox').style.display = 'none';
     document.body.style.overflow = 'auto';
 }
 
-// Keyboard navigation
 document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowLeft') changeSlide(-1);
     if (e.key === 'ArrowRight') changeSlide(1);
@@ -922,36 +612,13 @@ if (carousel) {
     carousel.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
     }, { passive: true });
-    
+
     carousel.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        const threshold = 50;
+        if (touchEndX < touchStartX - threshold) changeSlide(1);
+        if (touchEndX > touchStartX + threshold) changeSlide(-1);
     }, { passive: true });
 }
-
-function handleSwipe() {
-    const swipeThreshold = 50;
-    if (touchEndX < touchStartX - swipeThreshold) changeSlide(1); // Swipe left
-    if (touchEndX > touchStartX + swipeThreshold) changeSlide(-1); // Swipe right
-}
-
-// Optional: Auto-play carousel (uncomment to enable)
-/*
-let autoplayInterval;
-function startAutoplay() {
-    autoplayInterval = setInterval(() => {
-        if (!document.hidden) changeSlide(1);
-    }, 4000);
-}
-
-function stopAutoplay() {
-    clearInterval(autoplayInterval);
-}
-
-// Start autoplay and pause on hover
-startAutoplay();
-carousel.addEventListener('mouseenter', stopAutoplay);
-carousel.addEventListener('mouseleave', startAutoplay);
-*/
 </script>
 {% endblock %}

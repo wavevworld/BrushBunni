@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',  # powers /sitemap.xml
     'blog',  # Your existing blog app
 ]
 
@@ -84,6 +85,11 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'brushbunni.wsgi.application'
+
+# The admin is the only login on this site. Without this, logging in straight
+# from /admin/login/ lands on Django's default /accounts/profile/, which 404s.
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/'
 
 
 # Database
@@ -121,7 +127,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# The community and its events are based in Japan — keep "today" (used to split
+# upcoming vs past events) on local time, not UTC, which is 9 hours behind.
+TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
 
@@ -131,9 +139,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'blog' / 'static',
-]
+# No STATICFILES_DIRS needed: blog/static/ is found by the app-directories
+# finder. Listing it again made collectstatic report every file as a duplicate.
 
 # Enhanced: Media files configuration for image uploads
 MEDIA_URL = '/media/'
@@ -142,11 +149,26 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Enhanced: Static files for production (when you deploy)
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# WhiteNoise: compress collected static files and serve them with caching headers.
+# WhiteNoise: compress collected static files.
+#
+# In production the Manifest variant renames every file to include a content
+# hash (style.4f2a9c.css). That is what makes a one-year Cache-Control safe:
+# a changed file gets a new name, so browsers fetch it instead of serving a
+# stale copy. Under DEBUG the manifest does not exist yet, and {% static %}
+# would raise "Missing staticfiles manifest entry", so keep the plain backend.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedStaticFilesStorage" if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
 }
+
+# Serve collected static straight from WhiteNoise with a long cache lifetime.
+# Only safe together with the hashed names above.
+WHITENOISE_MAX_AGE = 31536000  # 1 year
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,31 +1,997 @@
+/* Brush Bunni — site styles.
+   Moved out of base.html so browsers cache it instead of re-downloading ~10KB
+   of inline CSS with every page. Image paths are relative: this file and the
+   backgrounds both live in blog/static/blog/. */
+
+html,
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #ffffff;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden; /* guard against accidental sideways scroll on mobile */
 }
 
-header {
-    background-color: #f8f8f8;
+body {
+  background-color: #2b2b2b; /* fallback while the image loads / if it fails */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+}
+
+/* ===== Per-page backgrounds =====
+   JPEG line first = fallback for old browsers that ignore image-set.
+   image-set line = WebP for modern browsers, JPEG for those without WebP. */
+body.page-home {
+  background-image: url("bg_about.jpg");
+  background-image: image-set(url("bg_about.webp") type("image/webp"), url("bg_about.jpg") type("image/jpeg"));
+}
+body.page-community {
+  background-image: url("bg_community.jpg");
+  background-image: image-set(url("bg_community.webp") type("image/webp"), url("bg_community.jpg") type("image/jpeg"));
+}
+body.page-be_online {
+  background-image: url("bg_online.jpg");
+  background-image: image-set(url("bg_online.webp") type("image/webp"), url("bg_online.jpg") type("image/jpeg"));
+}
+body.page-events {
+  background-image: url("bg_events.jpg");
+  background-image: image-set(url("bg_events.webp") type("image/webp"), url("bg_events.jpg") type("image/jpeg"));
+}
+body.page-shop,
+body.page-project_bunni {
+  background-image: url("bg_shop.jpg");
+  background-image: image-set(url("bg_shop.webp") type("image/webp"), url("bg_shop.jpg") type("image/jpeg"));
+}
+/* These two are already small — plain JPEG, no WebP variant needed. */
+body.page-members {
+  background-image: url("bg_members.jpg");
+}
+body.page-contact {
+  background-image: url("bg_contact.jpg");
+}
+
+/* Lighter backgrounds on phones (~1200px wide instead of 1920px) */
+@media (max-width: 768px) {
+  body.page-home {
+    background-image: url("bg_about-mobile.jpg");
+    background-image: image-set(url("bg_about-mobile.webp") type("image/webp"), url("bg_about-mobile.jpg") type("image/jpeg"));
+  }
+  body.page-community {
+    background-image: url("bg_community-mobile.jpg");
+    background-image: image-set(url("bg_community-mobile.webp") type("image/webp"), url("bg_community-mobile.jpg") type("image/jpeg"));
+  }
+  body.page-be_online {
+    background-image: url("bg_online-mobile.jpg");
+    background-image: image-set(url("bg_online-mobile.webp") type("image/webp"), url("bg_online-mobile.jpg") type("image/jpeg"));
+  }
+  body.page-events {
+    background-image: url("bg_events-mobile.jpg");
+    background-image: image-set(url("bg_events-mobile.webp") type("image/webp"), url("bg_events-mobile.jpg") type("image/jpeg"));
+  }
+  body.page-shop,
+  body.page-project_bunni {
+    background-image: url("bg_shop-mobile.jpg");
+    background-image: image-set(url("bg_shop-mobile.webp") type("image/webp"), url("bg_shop-mobile.jpg") type("image/jpeg"));
+  }
+}
+
+/* ===== Translucent page scrollbar ===== */
+html {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scrollbar-width: thin;
+}
+
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 5px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 280px;
+  background-color: transparent;
+  color: white;
+  padding: 30px 0 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+/* The menu block scrolls on its own so the social icons stay pinned to the
+   bottom; min-height:0 is what lets a flex child actually shrink and scroll. */
+.sidebar > div:first-child {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 8px; /* keep text clear of the scrollbar */
+}
+
+.sidebar > div:first-child::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar > div:first-child::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar > div:first-child::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+}
+.sidebar > div:first-child::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.55);
+}
+
+/* Tighten the menu on short screens (e.g. landscape laptops) */
+@media (max-height: 700px) {
+  .nav-link {
+    padding: 6px 28px;
+    margin-bottom: 4px;
+  }
+  .logo img {
+    height: 170px;
+  }
+}
+
+.menu-container {
+  position: relative;
+}
+
+/* Vertical white rule to the right of the menu */
+.menu-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  background-color: white;
+}
+
+.logo {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: 15px;
+  padding-left: 55px;
+  margin-bottom: 20px;
+}
+
+.logo img {
+  height: 200px;
+  width: auto;
+}
+
+.nav-link {
+  font-family: 'Poppins', sans-serif;
+  color: white;
+  font-size: 1.7rem;
+  padding: 9px 38px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+}
+
+.nav-link.active {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Social icons sit at the bottom of the sidebar, outside the scrolling area */
+.social-icons {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px 20px 20px 20px;
+}
+
+.social-icons img {
+  width: 28px;
+  height: auto;
+  filter: brightness(0) invert(1);
+  transition: transform 0.2s;
+  object-fit: contain;
+}
+
+.social-icons img:hover {
+  transform: scale(1.1);
+}
+
+/* ===== Content ===== */
+.content {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  margin-left: 280px;
+  /* A flex item defaults to min-width:auto, which lets wide children (the
+     events carousel) stretch this column past the viewport. */
+  min-width: 0;
+}
+
+.content-box {
+  position: fixed;
+  left: 280px;
+  margin-top: var(--content-offset, 60px);
+  width: calc(100vw - 320px);
+  max-width: 90%;
+  max-height: 80vh;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  z-index: 1;
+  transition: all 0.25s ease;
+}
+
+/* The events pages lay out their own cards, so they drop the white box.
+   These flow in the normal document instead of being position:fixed — the
+   fixed box was offset by the 280px sidebar *and* sized at 100% of the
+   viewport, so its right-hand side was cut off outside the screen. */
+body.page-events .content {
+  margin-left: 280px;
+  overflow: visible;
+}
+body.page-events .content-box {
+  position: static;
+  left: auto;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 24px 0 0 !important;
+  max-width: 100% !important;
+  width: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin-top: 0 !important;
+}
+
+.content-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content-box::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.content-box::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.content-box::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Custom vertical scrollbar for the fixed content box ===== */
+.content-scrollbar {
+  position: fixed;
+  right: 20px;
+  top: 20%;
+  width: 6px;
+  height: 60%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  z-index: 1001;
+  cursor: pointer;
+}
+
+.scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  min-height: 20px;
+  transition: all 0.2s ease;
+}
+
+.scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8);
+  width: 8px;
+  right: -1px;
+}
+
+/* ===== Mobile menu controls (hidden on desktop) ===== */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 1100;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  padding: 0;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 4px auto;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* Animate the burger into an X when the menu is open */
+body.menu-open .menu-toggle span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+body.menu-open .menu-toggle span:nth-child(2) {
+  opacity: 0;
+}
+body.menu-open .menu-toggle span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 900;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* ===== Mobile layout ===== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    width: 260px;
+    background-color: rgba(20, 20, 20, 0.96);
+    transform: translateX(-100%);
+    transition: transform 0.28s ease;
+    padding-top: calc(70px + env(safe-area-inset-top)); /* clear the burger + notch */
+  }
+  body.menu-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+    pointer-events: none;
+  }
+  body.menu-open .sidebar-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* The vertical white divider only makes sense next to the fixed desktop menu */
+  .menu-container::after {
+    display: none;
+  }
+
+  .logo {
+    padding-left: 24px;
+  }
+  .logo img {
+    height: 120px;
+  }
+  .nav-link {
+    font-size: 1.3rem;
+    padding: 8px 24px;
+  }
+
+  /* Content takes the full width and scrolls with the page, not in a fixed box.
+     body.page-events is repeated here because it outranks a bare .content. */
+  .content,
+  body.page-events .content {
+    margin-left: 0;
+    overflow: visible;
+    /* Clears the fixed burger button. Padding, not margin: a child's margin-top
+       collapses through this wrapper now that the box is no longer fixed. */
+    padding-top: 70px;
+  }
+  .content-box,
+  body.page-events .content-box {
+    position: static;
+    left: auto;
+    width: auto !important;
+    max-width: 100%;
+    max-height: none;
+    margin: 0 14px 24px;
+    padding: 20px !important;
+    overflow: visible;
+    background-color: rgba(255, 255, 255, 0.92);
+  }
+
+  /* The event pages bring their own surfaces, so keep the wrapper transparent */
+  body.page-events .content-box {
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 12px 24px;
+  }
+
+  /* The custom desktop scrollbar is tied to the fixed content box — hide it */
+  .content-scrollbar {
+    display: none;
+  }
+}
+
+/* ===== Editable page content (About / Community / Members / Project Bunni) ===== */
+.page-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+
+.page-intro {
+  color: #666;
+  font-size: 1.05rem;
+  margin: 0 0 1.4rem;
+}
+
+.page-body {
+  color: #333;
+  line-height: 1.65;
+  max-width: 68ch;
+}
+
+.page-body p {
+  margin: 0 0 1rem;
+}
+
+.page-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+  margin: 0 0 1.5rem;
+}
+
+.page-cta {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 11px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7b6cf6, #b06ae6);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.page-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(123, 108, 246, 0.35);
+  color: #fff;
+}
+
+/* ===== Members grid ===== */
+.member-grid {
+  list-style: none;
+  padding: 0;
+  margin: 1.8rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1.2rem;
+}
+
+.member-card {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 1.1rem 1rem 1rem;
+  text-align: center;
+}
+
+.member-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 0.7rem;
+  display: block;
+  background: #ece9ff;
+}
+
+.member-avatar--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+.member-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.15rem;
+}
+
+.member-role {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a7fd4;
+  margin: 0 0 0.6rem;
+}
+
+.member-bio {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 0 0 0.7rem;
+}
+
+.member-links {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.member-links a {
+  font-size: 0.85rem;
+  color: #6c5ce7;
+  text-decoration: none;
+}
+
+.member-links a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================================
+   EVENT DETAIL PAGE
+   Lives on a transparent .content-box (inherited from the events page), so
+   every section brings its own surface instead of relying on the white card.
+   ========================================================================= */
+.ev {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 4px 40px;
+  color: #222;
+}
+
+.ev-back {
+  display: inline-block;
+  margin-bottom: 18px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.ev-back:hover {
+  background: #fff;
+  transform: translateX(-2px);
+  color: #111;
+}
+
+/* ----- Hero ----- */
+.ev-hero {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  padding: clamp(28px, 5vw, 56px);
+  min-height: 240px;
+  display: flex;
+  align-items: flex-end;
+  background-image: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.2) 100%), var(--hero);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22);
+}
+
+/* No photo yet — brand gradient instead of an empty grey box */
+.ev-hero--plain {
+  background-image: linear-gradient(135deg, #6c5ce7, #b06ae6 55%, #f0709b);
+}
+
+.ev-hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.ev-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.ev-badge {
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.ev-badge--upcoming {
+  background: #34d399;
+  color: #05372a;
+}
+
+.ev-badge--past {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.ev-badge--online {
+  background: #60a5fa;
+  color: #06264d;
+}
+
+.ev-title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.9rem, 5vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+}
+
+.ev-tagline {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 1.05rem;
+  max-width: 60ch;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
+
+/* ----- Key facts ----- */
+.ev-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1px;
+  margin: 18px 0 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.ev-fact {
+  background: rgba(255, 255, 255, 0.94);
+  padding: 16px 18px;
+}
+
+.ev-fact dt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8a9a;
+  margin-bottom: 5px;
+}
+
+.ev-fact dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+}
+
+/* ----- Actions ----- */
+.ev-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0 0;
+}
+
+.ev-btn {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ev-btn--primary {
+  background: linear-gradient(135deg, #7b6cf6, #b06ae6);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(123, 108, 246, 0.4);
+}
+
+.ev-btn--ghost {
+  background: rgba(255, 255, 255, 0.94);
+  color: #4b3fd1;
+}
+
+.ev-btn:hover {
+  transform: translateY(-2px);
+}
+
+.ev-btn--primary:hover {
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(123, 108, 246, 0.5);
+}
+
+/* ----- Sections ----- */
+.ev-section {
+  margin-top: 26px;
+  padding: 24px clamp(18px, 3vw, 30px);
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ev-h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.ev-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6c5ce7;
+  background: #efecff;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.ev-body {
+  color: #444;
+  line-height: 1.7;
+  max-width: 70ch;
+}
+
+.ev-body p {
+  margin: 0 0 1rem;
+}
+
+/* ----- Photo grid ----- */
+.ev-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.ev-grid-item {
+  margin: 0;
+}
+
+.ev-thumb {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: zoom-in;
+  background: #ece9ff;
+  line-height: 0;
+}
+
+.ev-thumb img,
+.ev-grid-item video {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  transition: transform 0.35s ease;
+}
+
+.ev-thumb:hover img {
+  transform: scale(1.04);
+}
+
+.ev-caption {
+  margin: 7px 2px 0;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* ----- Related events ----- */
+.ev-related {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.ev-related-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #faf9ff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ev-related-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.ev-related-img {
+  display: block;
+  background: #ece9ff;
+  line-height: 0;
+}
+
+.ev-related-img img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.ev-related-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 10;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.ev-related-text {
+  display: block;
+  padding: 12px 14px 14px;
+}
+
+.ev-related-text strong {
+  display: block;
+  font-size: 0.98rem;
+  margin-bottom: 3px;
+}
+
+.ev-related-text small {
+  color: #777;
+  font-size: 0.83rem;
+}
+
+/* ----- Lightbox ----- */
+.ev-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(10, 10, 14, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+.ev-lightbox[hidden] {
+  display: none;
+}
+
+.ev-lb-figure {
+  margin: 0;
+  max-width: min(1100px, 88vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ev-lb-figure img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.ev-lb-figure figcaption {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.ev-lb-nav,
+.ev-lb-close {
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+}
+
+.ev-lb-nav {
+  width: 48px;
+  height: 48px;
+  font-size: 30px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.ev-lb-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.ev-lb-nav:hover,
+.ev-lb-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@media (max-width: 640px) {
+  .ev-lb-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+  .ev-facts {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .ev-actions .ev-btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}
+
+/* ===== Narrow phones ===== */
+@media (max-width: 480px) {
+  .content-box,
+  body.page-events .content-box {
+    margin: 0 10px 20px;
     padding: 20px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 32px;
-}
-
-nav ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: #333;
+    border-radius: 12px;
+  }
+  .logo img {
+    height: 100px;
+  }
+  .nav-link {
+    font-size: 1.2rem;
+    padding: 8px 20px;
+  }
 }

@@ -146,26 +146,7 @@
     updateScrollbar();
   }
 
-  window.addEventListener("load", () => {
-    initCustomScrollbar();
-    
-    const activeLink = document.querySelector(".nav-link.active");
-    const contentBox = document.querySelector(".content-box");
-
-    if (activeLink && contentBox) {
-      const linkRect = activeLink.getBoundingClientRect();
-      const scrollY = window.scrollY || window.pageYOffset;
-      const boxHeight = contentBox.offsetHeight;
-      const viewportHeight = window.innerHeight;
-
-      const centeredOffset = linkRect.top + linkRect.height / 2 - boxHeight / 2 + scrollY;
-      const tooTall = boxHeight > viewportHeight * 0.6;
-      const topLimit = 100;
-      const finalOffset = tooTall ? topLimit : centeredOffset;
-
-      contentBox.style.setProperty('--content-offset', `${finalOffset}px`);
-    }
-  });
+  window.addEventListener("load", initCustomScrollbar);
   </script>
 
 

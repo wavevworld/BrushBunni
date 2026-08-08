@@ -1,607 +1,217 @@
 {% extends 'blog/base.html' %}
 {% load static %}
 
-{% block title %}{{ event.title }} - Brush Bunni{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Use same content width as BB Online/Community pages */
-    .event-detail {
-        max-width: 100%;
-        padding: 20px;
-    }
-    
-    /* Left-aligned header */
-    .event-header {
-        text-align: left;
-        margin-bottom: 2rem;
-    }
-    
-    .event-title {
-        font-size: 2.2rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 1rem;
-        text-align: left;
-    }
-    
-    .event-meta {
-        display: flex;
-        justify-content: flex-start;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-    }
-    
-    .event-meta-item {
-        background: linear-gradient(45deg, #667eea, #f093fb);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-    
-    /* Photo Gallery with carousel */
-    .event-gallery {
-        margin: 2rem 0;
-        position: relative;
-    }
-    
-    .event-gallery h3 {
-        color: #333;
-        margin-bottom: 1.5rem;
-        font-size: 1.5rem;
-        font-weight: 600;
-        text-align: left;
-    }
-    
-    /* Carousel for event photos */
-    .photo-carousel {
-        position: relative;
-        background: #f5f5f5;
-        border-radius: 15px;
-        height: 400px;
-        overflow: hidden;
-        margin-bottom: 2rem;
-    }
-    
-    .photo-track {
-        display: flex;
-        height: 100%;
-        transition: transform 0.5s ease;
-        align-items: center;
-    }
-    
-    .photo-item {
-        flex: 0 0 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-    
-    .photo-item img,
-    .photo-item video {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        border-radius: 10px;
-    }
-    
-    /* Navigation for photo carousel */
-    .photo-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 45px;
-        height: 45px;
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: #333;
-        transition: all 0.3s ease;
-        border-radius: 50%;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .photo-nav:hover:not(:disabled) {
-        background: white;
-        transform: translateY(-50%) scale(1.1);
-    }
-    
-    .photo-nav.prev {
-        left: 15px;
-    }
-    
-    .photo-nav.next {
-        right: 15px;
-    }
-    
-    .photo-nav:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-    }
-    
-    /* Photo thumbnails */
-    .photo-thumbnails {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 1rem;
-    }
-    
-    .thumbnail {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-    
-    .thumbnail.active {
-        opacity: 1;
-        border-color: #667eea;
-    }
-    
-    .thumbnail:hover {
-        opacity: 0.9;
-    }
-    
-    .thumbnail img,
-    .thumbnail video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    /* Event Description */
-    .event-description {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 2rem;
-        border-radius: 15px;
-        margin: 2rem 0;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-    }
-    
-    .event-description h3 {
-        color: #333;
-        margin-bottom: 1rem;
-        font-weight: 600;
-        text-align: left;
-    }
-    
-    .event-description p {
-        line-height: 1.6;
-        color: #666;
-        text-align: left;
-    }
-    
-    /* Back button */
-    .back-button {
-        background: linear-gradient(45deg, #667eea, #f093fb);
-        color: white;
-        text-decoration: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        display: inline-block;
-        margin-bottom: 2rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    
-    .back-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        color: white;
-        text-decoration: none;
-    }
-
-    /* Sign-up CTA (links to the event's registration form) */
-    .register-button {
-        background: #ff9a00;
-        color: #fff;
-        text-decoration: none;
-        padding: 14px 28px;
-        border-radius: 25px;
-        display: inline-block;
-        font-weight: 700;
-        font-size: 1.05rem;
-        transition: all 0.25s ease;
-        box-shadow: 0 4px 14px rgba(255, 154, 0, 0.35);
-    }
-
-    .register-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 22px rgba(255, 154, 0, 0.5);
-        color: #fff;
-        text-decoration: none;
-    }
-    
-    /* Related events */
-    .related-events {
-        margin-top: 3rem;
-    }
-    
-    .related-events h3 {
-        color: #333;
-        margin-bottom: 1.5rem;
-        font-size: 1.5rem;
-        font-weight: 600;
-        text-align: left;
-    }
-    
-    .related-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-    
-    .related-card {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    .related-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-        text-decoration: none;
-    }
-    
-    .related-card-image {
-        height: 150px;
-        background: linear-gradient(45deg, #667eea, #f093fb);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 3rem;
-    }
-    
-    .related-card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .related-card-content {
-        padding: 15px;
-    }
-    
-    .related-card-title {
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 5px;
-    }
-    
-    .related-card-date {
-        color: #999;
-        font-size: 0.9rem;
-    }
-    
-    /* Modal for full-size viewing */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.95);
-        cursor: zoom-out;
-    }
-    
-    .modal-content {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        max-width: 90%;
-        max-height: 90%;
-    }
-    
-    .modal-content img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        border-radius: 8px;
-    }
-    
-    .modal-close {
-        position: absolute;
-        top: 20px;
-        right: 40px;
-        color: #f1f1f1;
-        font-size: 40px;
-        font-weight: bold;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-    
-    .modal-close:hover {
-        color: #bbb;
-    }
-    
-    /* No photos placeholder */
-    .no-photos {
-        text-align: center;
-        padding: 60px 20px;
-        background: #f5f5f5;
-        border-radius: 15px;
-        color: #999;
-    }
-    
-    .no-photos .emoji {
-        font-size: 60px;
-        margin-bottom: 15px;
-    }
-    
-    @media (max-width: 768px) {
-        .event-title {
-            font-size: 1.8rem;
-        }
-        
-        .event-meta {
-            gap: 0.8rem;
-        }
-        
-        .event-meta-item {
-            font-size: 0.8rem;
-            padding: 6px 12px;
-        }
-        
-        .photo-carousel {
-            height: 300px;
-        }
-        
-        .photo-thumbnails {
-            gap: 8px;
-        }
-        
-        .thumbnail {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .related-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="event-detail">
-    <!-- Back Button -->
-    <a href="{% url 'events' %}" class="back-button">← Back to Events</a>
-    
-    <!-- Event Header -->
-    <div class="event-header">
-        <h1 class="event-title">{{ event.title }}</h1>
-        
-        <div class="event-meta">
-            <div class="event-meta-item">
-                📅 {{ event.date|date:"F j, Y" }}
-                {% if event.start_time %}
-                    at {{ event.start_time|time:"g:i A" }}
-                {% endif %}
-            </div>
-            
-            {% if event.location %}
-                <div class="event-meta-item">
-                    {% if event.is_online %}
-                        🌐 Online Event
-                    {% else %}
-                        📍 {{ event.location }}
-                    {% endif %}
-                </div>
-            {% endif %}
-            
-            {% if event.max_participants %}
-                <div class="event-meta-item">
-                    👥 Max {{ event.max_participants }} participants
-                </div>
-            {% endif %}
-            
-            <div class="event-meta-item">
-                {{ event.code }}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Event Photos Gallery -->
-    {% if event_photos %}
-        <div class="event-gallery">
-            <h3>Event Photos</h3>
-            
-            <!-- Photo Carousel -->
-            <div class="photo-carousel">
-                <button class="photo-nav prev" onclick="changePhoto(-1)">‹</button>
-                <button class="photo-nav next" onclick="changePhoto(1)">›</button>
-                
-                <div class="photo-track" id="photoTrack">
-                    {% for photo in event_photos %}
-                        <div class="photo-item" onclick="openModal('{{ photo.image.url }}')">
-                            {% if photo.is_video %}
-                                <video src="{{ photo.image.url }}" controls></video>
-                            {% else %}
-                                <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:event.title }}">
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <!-- Thumbnails -->
-            {% if event_photos|length > 1 %}
-                <div class="photo-thumbnails">
-                    {% for photo in event_photos %}
-                        <div class="thumbnail {% if forloop.first %}active{% endif %}" 
-                             onclick="goToPhoto({{ forloop.counter0 }})">
-                            {% if photo.is_video %}
-                                <video src="{{ photo.image.url }}" muted></video>
-                            {% else %}
-                                <img src="{{ photo.image.url }}" alt="">
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-    {% else %}
-        <div class="no-photos">
-            <div class="emoji">📸</div>
-            <div>No photos available for this event yet</div>
-        </div>
-    {% endif %}
-    
-    <!-- Event Description -->
-    <div class="event-description">
-        <h3>About This Event</h3>
-        {% if event.description %}
-            <p>{{ event.description|linebreaks }}</p>
+<article class="ev">
+
+  <a href="{% url 'events' %}" class="ev-back">← Back to Events</a>
+
+  {% comment %}
+    Hero: the event's own photo as the backdrop, with a dark scrim so the title
+    stays readable whatever the photo looks like. Falls back to a flat gradient
+    when the event has no photos yet.
+  {% endcomment %}
+  <header class="ev-hero{% if not hero_photo %} ev-hero--plain{% endif %}"
+          {% if hero_photo %}style="--hero: url('{{ hero_photo.image.url }}')"{% endif %}>
+    <div class="ev-hero-inner">
+      <p class="ev-badges">
+        <span class="ev-badge ev-badge--type">{{ event.get_event_type_display }}</span>
+        {% if event.is_upcoming %}
+          <span class="ev-badge ev-badge--upcoming">Upcoming</span>
         {% else %}
-            <p>{{ event.short_description|default:"Join us for this amazing community event!" }}</p>
+          <span class="ev-badge ev-badge--past">Past event</span>
         {% endif %}
-        
-        {% if event.registration_deadline %}
-            <div style="margin-top: 1.5rem; padding: 1rem; background: linear-gradient(45deg, #667eea, #f093fb); color: white; border-radius: 10px;">
-                <strong>Registration deadline:</strong>
-                {{ event.registration_deadline|date:"F j, Y g:i A" }}
-            </div>
+        {% if event.is_online %}
+          <span class="ev-badge ev-badge--online">Online</span>
         {% endif %}
+      </p>
 
-        {% if event.registration_url %}
-            <div style="margin-top: 1.5rem;">
-                <a href="{{ event.registration_url }}" target="_blank" rel="noopener"
-                   class="register-button">📝 Sign up for this event ↗</a>
-            </div>
-        {% endif %}
+      <h1 class="ev-title">{{ event.display_name }}</h1>
+
+      {% if event.short_description %}
+        <p class="ev-tagline">{{ event.short_description }}</p>
+      {% endif %}
     </div>
-    
-    <!-- Related Events -->
-    {% if related_events %}
-        <div class="related-events">
-            <h3>Related Events</h3>
-            <div class="related-grid">
-                {% for related in related_events %}
-                    <a href="{{ related.get_absolute_url }}" class="related-card">
-                        <div class="related-card-image">
-                            {% if related.photos.first %}
-                                <img src="{{ related.photos.first.image.url }}" alt="{{ related.title }}">
-                            {% else %}
-                                🎨
-                            {% endif %}
-                        </div>
-                        <div class="related-card-content">
-                            <div class="related-card-title">{{ related.title }}</div>
-                            <div class="related-card-date">{{ related.date|date:"F j, Y" }}</div>
-                        </div>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
+  </header>
+
+  <!-- Key facts -->
+  <dl class="ev-facts">
+    <div class="ev-fact">
+      <dt>Date</dt>
+      <dd>{{ event.date|date:"l, F j, Y" }}</dd>
+    </div>
+
+    {% if event.start_time %}
+      <div class="ev-fact">
+        <dt>Time</dt>
+        <dd>
+          {{ event.start_time|time:"g:i A" }}{% if event.end_time %} – {{ event.end_time|time:"g:i A" }}{% endif %}
+        </dd>
+      </div>
     {% endif %}
-</div>
 
-<!-- Image Modal -->
-<div id="imageModal" class="modal" onclick="closeModal()">
-    <span class="modal-close" onclick="closeModal()">&times;</span>
-    <div class="modal-content">
-        <img id="modalImage">
-    </div>
+    {% if event.location %}
+      <div class="ev-fact">
+        <dt>{% if event.is_online %}Where{% else %}Venue{% endif %}</dt>
+        <dd>{{ event.location }}</dd>
+      </div>
+    {% endif %}
+
+    {% if event.max_participants %}
+      <div class="ev-fact">
+        <dt>Capacity</dt>
+        <dd>{{ event.max_participants }} people</dd>
+      </div>
+    {% endif %}
+
+    {% if event.registration_deadline %}
+      <div class="ev-fact">
+        <dt>Sign-up closes</dt>
+        <dd>{{ event.registration_deadline|date:"F j, Y" }}</dd>
+      </div>
+    {% endif %}
+  </dl>
+
+  <!-- Actions -->
+  {% if event.registration_url or event.note_url %}
+    <p class="ev-actions">
+      {% if event.registration_url %}
+        <a class="ev-btn ev-btn--primary" href="{{ event.registration_url }}"
+           target="_blank" rel="noopener">
+          {% if event.is_upcoming %}Sign up for this event{% else %}Sign-up form{% endif %} ↗
+        </a>
+      {% endif %}
+      {% if event.note_url %}
+        <a class="ev-btn ev-btn--ghost" href="{{ event.note_url }}"
+           target="_blank" rel="noopener">Read the write-up on note.com ↗</a>
+      {% endif %}
+    </p>
+  {% endif %}
+
+  <!-- Description -->
+  {% if event.description %}
+    <section class="ev-section">
+      <h2 class="ev-h2">About this event</h2>
+      <div class="ev-body">{{ event.description|linebreaks }}</div>
+    </section>
+  {% endif %}
+
+  <!-- Gallery -->
+  {% if event_photos %}
+    <section class="ev-section">
+      <h2 class="ev-h2">
+        {% if event.is_upcoming %}Posters &amp; artwork{% else %}Event photos{% endif %}
+        <span class="ev-count">{{ event_photos|length }}</span>
+      </h2>
+
+      {% comment %}
+        A plain responsive grid, not a carousel: every photo is visible at once
+        and nothing depends on JS to lay out correctly. Clicking opens a
+        lightbox, which is progressive enhancement on top.
+      {% endcomment %}
+      <ul class="ev-grid">
+        {% for photo in event_photos %}
+          <li class="ev-grid-item">
+            {% if photo.is_video %}
+              <video src="{{ photo.image.url }}" controls preload="metadata"></video>
+            {% else %}
+              <button type="button" class="ev-thumb"
+                      data-full="{{ photo.image.url }}"
+                      data-caption="{{ photo.caption|default:'' }}">
+                <img src="{{ photo.image.url }}" loading="lazy"
+                     alt="{{ photo.caption|default:event.display_name }}">
+              </button>
+            {% endif %}
+            {% if photo.caption %}<p class="ev-caption">{{ photo.caption }}</p>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <!-- Related -->
+  {% if related_events %}
+    <section class="ev-section">
+      <h2 class="ev-h2">Other events</h2>
+      <ul class="ev-related">
+        {% for related in related_events %}
+          <li>
+            <a href="{{ related.get_absolute_url }}" class="ev-related-card">
+              <span class="ev-related-img">
+                {% if related.photos.first %}
+                  <img src="{{ related.photos.first.image.url }}" loading="lazy" alt="">
+                {% else %}
+                  <span class="ev-related-placeholder">🎨</span>
+                {% endif %}
+              </span>
+              <span class="ev-related-text">
+                <strong>{{ related.display_name }}</strong>
+                <small>{{ related.date|date:"F j, Y" }}</small>
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</article>
+
+<!-- Lightbox -->
+<div class="ev-lightbox" id="evLightbox" hidden>
+  <button type="button" class="ev-lb-close" id="evLbClose" aria-label="Close">×</button>
+  <button type="button" class="ev-lb-nav ev-lb-prev" id="evLbPrev" aria-label="Previous">‹</button>
+  <figure class="ev-lb-figure">
+    <img id="evLbImage" alt="">
+    <figcaption id="evLbCaption"></figcaption>
+  </figure>
+  <button type="button" class="ev-lb-nav ev-lb-next" id="evLbNext" aria-label="Next">›</button>
 </div>
 
 <script>
-let currentPhoto = 0;
-const photos = document.querySelectorAll('.photo-item');
-const thumbnails = document.querySelectorAll('.thumbnail');
+(function () {
+  const thumbs = Array.from(document.querySelectorAll(".ev-thumb"));
+  if (!thumbs.length) return;
 
-// Photo carousel navigation
-function changePhoto(direction) {
-    const newPhoto = currentPhoto + direction;
-    
-    // No looping
-    if (newPhoto < 0 || newPhoto >= photos.length) {
-        return;
-    }
-    
-    currentPhoto = newPhoto;
-    updatePhotoCarousel();
-}
+  const box = document.getElementById("evLightbox");
+  const img = document.getElementById("evLbImage");
+  const caption = document.getElementById("evLbCaption");
+  let index = 0;
 
-function goToPhoto(index) {
-    currentPhoto = index;
-    updatePhotoCarousel();
-}
+  function show(i) {
+    index = (i + thumbs.length) % thumbs.length;   // wrap around
+    const t = thumbs[index];
+    img.src = t.dataset.full;
+    img.alt = t.querySelector("img").alt;
+    caption.textContent = t.dataset.caption || "";
+    caption.hidden = !t.dataset.caption;
+  }
 
-function updatePhotoCarousel() {
-    const track = document.getElementById('photoTrack');
-    const transform = -currentPhoto * 100;
-    track.style.transform = `translateX(${transform}%)`;
-    
-    // Update thumbnails
-    thumbnails.forEach((thumb, index) => {
-        thumb.classList.toggle('active', index === currentPhoto);
-    });
-    
-    // Update navigation buttons
-    const prevBtn = document.querySelector('.photo-nav.prev');
-    const nextBtn = document.querySelector('.photo-nav.next');
-    
-    if (prevBtn) {
-        prevBtn.disabled = currentPhoto === 0;
-    }
-    
-    if (nextBtn) {
-        nextBtn.disabled = currentPhoto === photos.length - 1;
-    }
-}
+  function open(i) {
+    show(i);
+    box.hidden = false;
+    document.body.style.overflow = "hidden";       // don't scroll the page behind
+  }
 
-// Modal functionality
-function openModal(imageSrc) {
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('modalImage');
-    modal.style.display = 'block';
-    modalImg.src = imageSrc;
-}
+  function close() {
+    box.hidden = true;
+    img.src = "";
+    document.body.style.overflow = "";
+  }
 
-function closeModal() {
-    document.getElementById('imageModal').style.display = 'none';
-}
+  thumbs.forEach((t, i) => t.addEventListener("click", () => open(i)));
+  document.getElementById("evLbClose").addEventListener("click", close);
+  document.getElementById("evLbPrev").addEventListener("click", () => show(index - 1));
+  document.getElementById("evLbNext").addEventListener("click", () => show(index + 1));
 
-// Keyboard navigation
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeModal();
-    }
-    if (event.key === 'ArrowLeft') {
-        changePhoto(-1);
-    }
-    if (event.key === 'ArrowRight') {
-        changePhoto(1);
-    }
-});
+  // Click the backdrop (but not the image or the buttons) to dismiss
+  box.addEventListener("click", (e) => { if (e.target === box) close(); });
 
-// Initialize
-updatePhotoCarousel();
+  document.addEventListener("keydown", (e) => {
+    if (box.hidden) return;
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowLeft") show(index - 1);
+    if (e.key === "ArrowRight") show(index + 1);
+  });
+})();
 </script>
 {% endblock %}

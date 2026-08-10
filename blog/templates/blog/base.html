@@ -121,28 +121,45 @@
     const contentBox = document.querySelector(".content-box");
     const scrollbar = document.getElementById("customScrollbar");
     const thumb = document.getElementById("scrollbarThumb");
-    
+
     if (!contentBox || !scrollbar || !thumb) return;
-    
+
+    // Most pages scroll inside .content-box (max-height + overflow-y:auto).
+    // The events page overrides that to overflow:visible, so the whole
+    // document scrolls instead — track whichever one actually scrolls, or
+    // the thumb never moves on that page.
+    const boxScrolls = getComputedStyle(contentBox).overflowY !== 'visible';
+    const scroller = boxScrolls ? contentBox : document.documentElement;
+    // The document's own scroll position is read off documentElement, but
+    // the 'scroll' event for it only fires on window, never on the element.
+    const scrollEventTarget = boxScrolls ? contentBox : window;
+
     function updateScrollbar() {
-      const scrollRatio = contentBox.scrollTop / (contentBox.scrollHeight - contentBox.clientHeight);
-      const thumbHeight = Math.max(20, (contentBox.clientHeight / contentBox.scrollHeight) * scrollbar.clientHeight);
+      const scrollableHeight = scroller.scrollHeight - scroller.clientHeight;
+      if (scrollableHeight <= 0) {
+        thumb.style.height = scrollbar.clientHeight + 'px';
+        thumb.style.top = '0px';
+        return;
+      }
+
+      const scrollRatio = scroller.scrollTop / scrollableHeight;
+      const thumbHeight = Math.max(20, (scroller.clientHeight / scroller.scrollHeight) * scrollbar.clientHeight);
       const thumbTop = scrollRatio * (scrollbar.clientHeight - thumbHeight);
-      
+
       thumb.style.height = thumbHeight + 'px';
       thumb.style.top = thumbTop + 'px';
     }
-    
-    contentBox.addEventListener('scroll', updateScrollbar);
+
+    scrollEventTarget.addEventListener('scroll', updateScrollbar);
     window.addEventListener('resize', updateScrollbar);
-    
+
     // Scrollbar click handling
     scrollbar.addEventListener('click', (e) => {
       const rect = scrollbar.getBoundingClientRect();
       const clickRatio = (e.clientY - rect.top) / rect.height;
-      contentBox.scrollTop = clickRatio * (contentBox.scrollHeight - contentBox.clientHeight);
+      scroller.scrollTop = clickRatio * (scroller.scrollHeight - scroller.clientHeight);
     });
-    
+
     updateScrollbar();
   }
 
@@ -161,7 +178,9 @@
       const centeredOffset = linkRect.top + linkRect.height / 2 - boxHeight / 2 + scrollY;
       const tooTall = boxHeight > viewportHeight * 0.6;
       const topLimit = 100;
-      const finalOffset = tooTall ? topLimit : centeredOffset;
+      const margin = 20;
+      const maxOffset = Math.max(margin, viewportHeight - boxHeight - margin);
+      const finalOffset = tooTall ? topLimit : Math.min(Math.max(centeredOffset, margin), maxOffset);
 
       contentBox.style.setProperty('--content-offset', `${finalOffset}px`);
     }

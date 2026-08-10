@@ -50,93 +50,153 @@
         font-family: 'Inter', sans-serif;
     }
 
-    /* ----- Tabs: rounded pills in a horizontally scrollable row -----
+    /* ----- Tabs: horizontally scrollable strip on a shared gray bar -----
        There are more past events than fit on one screen, so the strip
        scrolls instead of overflowing the rounded card (the old fixed-width
-       tab strip broke as soon as an 8th event was added). */
+       tab strip broke as soon as an 8th event was added). Prev/next arrows
+       (like the photo carousel below) make the overflow discoverable —
+       the native scrollbar is hidden and mouse wheel doesn't scroll
+       sideways, so without the arrows the tabs past the first screenful
+       were unreachable. */
+    .event-tabs-wrapper {
+        position: relative;
+        margin: 0 0 22px;
+        background: #4a4744;
+        border-radius: 16px;
+    }
+
     .event-tabs-scroll {
         overflow-x: auto;
         overflow-y: hidden;
-        margin: 0 -8px 22px;
-        padding: 0 8px;
         -ms-overflow-style: none;
         scrollbar-width: none;
+        border-radius: inherit;
     }
     .event-tabs-scroll::-webkit-scrollbar {
         display: none;
     }
 
-    .event-tabs-container {
-        display: flex;
-        gap: 10px;
-        width: max-content;
+    /* Fade behind the arrow buttons, same technique as the photo carousel. */
+    .event-tabs-wrapper::before,
+    .event-tabs-wrapper::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .event-tabs-wrapper::before {
+        left: 0;
+        background: linear-gradient(to right, #4a4744, transparent);
+    }
+    .event-tabs-wrapper::after {
+        right: 0;
+        background: linear-gradient(to left, #4a4744, transparent);
     }
 
-    .event-tab {
-        flex: 0 0 auto;
-        max-width: 220px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        background: rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: 999px;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        padding: 11px 22px;
+    .event-tabs-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        z-index: 3;
+        font-size: 26px;
+        line-height: 1;
+        padding: 6px;
+        transition: color 0.2s ease;
     }
 
-    .event-tab:hover {
-        background: rgba(255, 255, 255, 0.2);
+    .event-tabs-nav:hover {
         color: #fff;
     }
 
-    .event-tab.active {
-        background: #fff;
-        color: #333;
-        border-color: #fff;
+    .event-tabs-nav.prev { left: 0; }
+    .event-tabs-nav.next { right: 0; }
+
+    .event-tabs-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
     }
 
-    /* ----- Photo carousel: three-image peek, centered on the active slide -----
-       Slide position/centering is computed in JS (see updateCarousel) so it
-       stays correct at any viewport width without overlapping neighbours. */
+    .event-tabs-container {
+        display: flex;
+        align-items: stretch;
+        height: 46px;
+        width: max-content;
+        padding: 0 12px;
+    }
+
+    /* Tabs sit as plain text directly on the shared gray bar; only the
+       active tab gets its own flag/arrow shape — rounded on the left, cut
+       to a point on the right via a triangle pseudo-element sized to match
+       the fixed tab height, matching the reference design. */
+    .event-tab {
+        position: relative;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.5);
+        border: none;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        padding: 0 20px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .event-tab:hover {
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .event-tab.active {
+        background: #f2efe9;
+        color: #232323;
+        border-radius: 999px 0 0 999px;
+        padding: 0 30px 0 22px;
+        margin-right: 23px;
+        z-index: 1;
+    }
+
+    .event-tab.active::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 100%;
+        width: 0;
+        height: 0;
+        border-top: 23px solid transparent;
+        border-bottom: 23px solid transparent;
+        border-left: 18px solid #f2efe9;
+    }
+
+    /* ----- Photo carousel: three equal photos in a filmstrip, paginated one
+       at a time ----- Slide width/position is computed in JS (see
+       updateCarousel) so it stays correct at any viewport width. Arrows sit
+       in a dark gutter inside the rounded card rather than overlapping the
+       photos, echoing the reference design's arrows-outside-the-frame look. */
     .gallery-carousel {
         position: relative;
         height: 500px;
         border-radius: 18px;
         overflow: hidden;
         background: #0f0f11;
-    }
-
-    /* Soft fade over the cropped edges of the peeking side slides, so they
-       read as intentionally partial rather than abruptly cut off. */
-    .gallery-carousel::before,
-    .gallery-carousel::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 10%;
-        min-width: 40px;
-        z-index: 5;
-        pointer-events: none;
-    }
-    .gallery-carousel::before {
-        left: 0;
-        background: linear-gradient(to right, #0f0f11, transparent);
-    }
-    .gallery-carousel::after {
-        right: 0;
-        background: linear-gradient(to left, #0f0f11, transparent);
+        padding: 0 46px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
     }
 
     .carousel-viewport {
         width: 100%;
-        height: 100%;
+        height: 88%;
         overflow: hidden;
     }
 
@@ -144,27 +204,13 @@
         display: flex;
         align-items: center;
         height: 100%;
-        gap: 18px;
+        gap: 0;
         will-change: transform;
     }
 
     .gallery-slide {
-        flex: 0 0 62%;
-        height: 88%;
-        border-radius: 14px;
+        height: 100%;
         overflow: hidden;
-        cursor: pointer;
-        opacity: 0.5;
-        filter: brightness(0.75);
-        transform: scale(0.94);
-        transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
-    }
-
-    .gallery-slide.active {
-        opacity: 1;
-        filter: none;
-        transform: scale(1);
         cursor: zoom-in;
     }
 
@@ -199,38 +245,32 @@
         font-weight: 600;
     }
 
-    /* Nav arrows sit in the carousel's own dark background, not on top of
-       the photo content. */
+    /* Plain chevrons in the carousel's own dark gutter — no button chrome,
+       matching the reference design's arrows-outside-the-photos look. */
     .carousel-nav {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: rgba(255, 255, 255, 0.85);
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
         cursor: pointer;
         z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
+        font-size: 34px;
         line-height: 1;
-        transition: background 0.2s ease, color 0.2s ease;
+        padding: 8px;
+        transition: color 0.2s ease;
     }
 
     .carousel-nav:hover {
-        background: rgba(0, 0, 0, 0.6);
         color: #fff;
     }
 
-    .carousel-nav.prev { left: 16px; }
-    .carousel-nav.next { right: 16px; }
+    .carousel-nav.prev { left: 4px; }
+    .carousel-nav.next { right: 4px; }
 
     .carousel-nav:disabled {
-        opacity: 0.3;
+        opacity: 0.25;
         cursor: not-allowed;
     }
 
@@ -373,8 +413,7 @@
     /* Responsive */
     @media (max-width: 1024px) {
         .events-container { padding: 20px; }
-        .gallery-carousel { height: 420px; }
-        .gallery-slide { flex-basis: 74%; }
+        .gallery-carousel { height: 420px; padding: 0 34px; }
         .upcoming-content { grid-template-columns: repeat(2, 1fr); }
     }
 
@@ -382,23 +421,22 @@
         .events-container { padding: 15px; }
         .events-title { font-size: 1.8rem; }
         .previous-events-section { padding: 22px 20px 20px; }
-        .gallery-carousel { height: 320px; }
-        .gallery-slide { flex-basis: 84%; }
-        .carousel-nav { width: 38px; height: 38px; font-size: 17px; }
+        .gallery-carousel { height: 320px; padding: 0 26px; }
+        .carousel-nav { font-size: 26px; }
         .upcoming-content {
             grid-template-columns: 1fr;
             gap: 18px;
             padding: 24px 20px;
         }
-        .event-tab { font-size: 12.5px; padding: 9px 18px; }
+        .event-tabs-container { height: 40px; }
+        .event-tab { font-size: 12.5px; padding: 0 16px; }
+        .event-tab.active { padding: 0 24px 0 18px; margin-right: 20px; }
+        .event-tab.active::after { border-top-width: 20px; border-bottom-width: 20px; border-left-width: 16px; }
     }
 
     @media (max-width: 480px) {
-        .gallery-carousel { height: 260px; }
-        .gallery-slide { flex-basis: 90%; }
-        .carousel-nav.prev { left: 8px; }
-        .carousel-nav.next { right: 8px; }
-        .carousel-nav { width: 34px; height: 34px; font-size: 15px; }
+        .gallery-carousel { height: 260px; padding: 0 20px; }
+        .carousel-nav { font-size: 20px; padding: 4px; }
     }
 </style>
 {% endblock %}
@@ -411,19 +449,23 @@
             <h1 class="events-title">Previous Events</h1>
 
             <!-- Event Tabs -->
-            <div class="event-tabs-scroll">
-                <div class="event-tabs-container">
-                    {% if past_events %}
-                        {% for event in past_events %}
-                            <button class="event-tab {% if forloop.first %}active{% endif %}"
-                                    data-event-id="{{ event.id }}"
-                                    title="{{ event.display_name|default:event.title }}">
-                                {{ event.display_name|default:event.title }}
-                            </button>
-                        {% endfor %}
-                    {% else %}
-                        <button class="event-tab active" data-event-id="0">No Events Yet</button>
-                    {% endif %}
+            <div class="event-tabs-wrapper">
+                <button class="event-tabs-nav prev" onclick="scrollTabs(-1)" aria-label="Scroll tabs left">‹</button>
+                <button class="event-tabs-nav next" onclick="scrollTabs(1)" aria-label="Scroll tabs right">›</button>
+                <div class="event-tabs-scroll" id="eventTabsScroll">
+                    <div class="event-tabs-container">
+                        {% if past_events %}
+                            {% for event in past_events %}
+                                <button class="event-tab {% if forloop.first %}active{% endif %}"
+                                        data-event-id="{{ event.id }}"
+                                        title="{{ event.display_name|default:event.title }}">
+                                    {{ event.display_name|default:event.title }}
+                                </button>
+                            {% endfor %}
+                        {% else %}
+                            <button class="event-tab active" data-event-id="0">No Events Yet</button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -439,7 +481,7 @@
                                 {% if event.photos.all %}
                                     {% for photo in event.photos.all %}
                                         <div class="gallery-slide" data-event-id="{{ event.id }}"
-                                             onclick="if(this.classList.contains('active')) openLightbox('{{ photo.image.url }}')">
+                                             onclick="openLightbox('{{ photo.image.url }}')">
                                             {% if photo.is_video %}
                                                 <video src="{{ photo.image.url }}" muted loop></video>
                                             {% else %}
@@ -523,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', function() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            this.scrollIntoView({ inline: 'nearest', behavior: 'smooth', block: 'nearest' });
+            scrollTabIntoView(this);
 
             currentEventId = this.getAttribute('data-event-id');
             currentSlide = 0;
@@ -531,55 +573,110 @@ document.addEventListener('DOMContentLoaded', function() {
             updateCarousel();
         });
     });
+
+    const tabsScroll = document.getElementById('eventTabsScroll');
+    if (tabsScroll) {
+        tabsScroll.addEventListener('scroll', updateTabsNavState);
+        updateTabsNavState();
+    }
 });
+
+// Scrolls the tabs strip by one screenful in either direction.
+function scrollTabs(direction) {
+    const el = document.getElementById('eventTabsScroll');
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: 'smooth' });
+}
+
+// element.scrollIntoView() doesn't reliably scroll this row (it's nested
+// inside other layout containers), so the "nearest" logic is done by hand
+// against the scroll container itself.
+function scrollTabIntoView(tab) {
+    const el = document.getElementById('eventTabsScroll');
+    if (!el) return;
+    const tabLeft = tab.offsetLeft;
+    const tabRight = tabLeft + tab.offsetWidth;
+    const viewLeft = el.scrollLeft;
+    const viewRight = viewLeft + el.clientWidth;
+
+    if (tabLeft < viewLeft) {
+        el.scrollTo({ left: tabLeft - 8, behavior: 'smooth' });
+    } else if (tabRight > viewRight) {
+        el.scrollTo({ left: tabRight - el.clientWidth + 8, behavior: 'smooth' });
+    }
+}
+
+function updateTabsNavState() {
+    const el = document.getElementById('eventTabsScroll');
+    const prevBtn = document.querySelector('.event-tabs-nav.prev');
+    const nextBtn = document.querySelector('.event-tabs-nav.next');
+    if (!el || !prevBtn || !nextBtn) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    prevBtn.disabled = el.scrollLeft <= 1;
+    nextBtn.disabled = el.scrollLeft >= maxScroll - 1;
+}
 
 function updateVisibleSlides() {
     visibleSlides = [];
     allSlides.forEach(slide => {
         const match = slide.getAttribute('data-event-id') === currentEventId;
         slide.style.display = match ? '' : 'none';
-        // Slides from the event we're leaving keep display:none so they can't
-        // be clicked, but clear 'active' too — otherwise a stray broad query
-        // like `.gallery-slide.active` can still match a leftover from the
-        // previous tab.
-        if (!match) slide.classList.remove('active');
         if (match) visibleSlides.push(slide);
     });
-    if (currentSlide >= visibleSlides.length) currentSlide = 0;
+    currentSlide = 0;
+}
+
+// How many equal-width photos fit in the filmstrip at once — matches the
+// reference design's 3-across layout, tapering down on narrow screens.
+function getSlidesPerView() {
+    const w = window.innerWidth;
+    if (w <= 480) return 1;
+    if (w <= 768) return 2;
+    return 3;
 }
 
 function changeSlide(direction) {
     if (visibleSlides.length === 0) return;
-    currentSlide = (currentSlide + direction + visibleSlides.length) % visibleSlides.length;
+    const perView = Math.min(getSlidesPerView(), visibleSlides.length);
+    const maxIndex = Math.max(0, visibleSlides.length - perView);
+    currentSlide = Math.min(maxIndex, Math.max(0, currentSlide + direction));
     updateCarousel();
 }
 
-// Centers the active slide inside the viewport by measuring real rendered
-// widths — robust at any screen size, unlike a fixed percentage offset,
-// and never lets neighbouring slides overlap the active one.
+// Lays the visible slides out as equal-width columns and pages through them
+// one photo at a time — unlike a centered "peek" carousel, every visible
+// slide is shown at full brightness/size, matching the reference design.
 function updateCarousel() {
     if (visibleSlides.length === 0) return;
 
-    visibleSlides.forEach((slide, i) => slide.classList.toggle('active', i === currentSlide));
-
     const track = document.getElementById('galleryTrack');
     const viewport = track.parentElement;
-    const active = visibleSlides[currentSlide];
-
     const viewportWidth = viewport.clientWidth;
-    const shift = viewportWidth / 2 - (active.offsetLeft + active.offsetWidth / 2);
-    track.style.transform = `translateX(${shift}px)`;
+    const perView = Math.min(getSlidesPerView(), visibleSlides.length);
+    const slideWidth = viewportWidth / perView;
+    const maxIndex = Math.max(0, visibleSlides.length - perView);
+
+    if (currentSlide > maxIndex) currentSlide = maxIndex;
+
+    visibleSlides.forEach(slide => {
+        slide.style.flex = `0 0 ${slideWidth}px`;
+    });
+
+    track.style.transform = `translateX(${-currentSlide * slideWidth}px)`;
 
     const prevBtn = document.querySelector('.carousel-nav.prev');
     const nextBtn = document.querySelector('.carousel-nav.next');
-    if (prevBtn) prevBtn.disabled = visibleSlides.length < 2;
-    if (nextBtn) nextBtn.disabled = visibleSlides.length < 2;
+    if (prevBtn) prevBtn.disabled = currentSlide <= 0;
+    if (nextBtn) nextBtn.disabled = currentSlide >= maxIndex;
 }
 
 let resizeTimer;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(updateCarousel, 200);
+    resizeTimer = setTimeout(() => {
+        updateCarousel();
+        updateTabsNavState();
+    }, 200);
 });
 
 // Lightbox

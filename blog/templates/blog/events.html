@@ -131,50 +131,64 @@
         padding: 0 10px;
     }
 
-    /* Tabs sit as plain text directly on the shared gray bar; only the
-       active tab gets its own flag/arrow shape — rounded on the left, cut
-       to a point on the right via a triangle pseudo-element sized to match
-       the fixed tab height, matching the reference design. */
+    /* Every tab is a breadcrumb segment: a rectangle whose right edge is cut
+       to a point and whose left edge carries the matching notch, so the strip
+       reads as one connected chain of arrows — the reference mockup — rather
+       than a row of loose labels with one highlighted.
+
+       The shape is a clip-path, not the pseudo-element triangle this replaced,
+       because a triangle has to be recoloured and re-sized per state; a
+       clip-path is one geometry that every tab shares whatever its fill. */
     .event-tab {
+        --notch: 11px;
         position: relative;
         flex: 0 0 auto;
         display: flex;
         align-items: center;
         white-space: nowrap;
-        background: transparent;
-        color: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.22);
+        color: rgba(255, 255, 255, 0.72);
         border: none;
         font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.02em;
-        padding: 0 16px;
+        padding: 0 20px 0 26px;
         cursor: pointer;
-        transition: color 0.2s ease;
+        transition: background 0.2s ease, color 0.2s ease;
+        clip-path: polygon(
+            0 0,
+            calc(100% - var(--notch)) 0,
+            100% 50%,
+            calc(100% - var(--notch)) 100%,
+            0 100%,
+            var(--notch) 50%);
+        /* Pull each tab left so its notch swallows the previous tab's point,
+           leaving a constant-width slice of the dark bar behind as the
+           divider — 4px measured perpendicular to the arrow, not 4px of
+           horizontal margin. */
+        margin-right: calc(4px - var(--notch));
+    }
+
+    /* Nothing points into the first tab, so it keeps a straight left edge and
+       lets the bar's own rounded corner cap the strip. */
+    .event-tab:first-child {
+        padding-left: 18px;
+        clip-path: polygon(
+            0 0,
+            calc(100% - var(--notch)) 0,
+            100% 50%,
+            calc(100% - var(--notch)) 100%,
+            0 100%);
     }
 
     .event-tab:hover {
-        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.22);
+        color: rgba(255, 255, 255, 0.9);
     }
 
     .event-tab.active {
         background: #f2efe9;
         color: #232323;
-        border-radius: 999px 0 0 999px;
-        padding: 0 22px 0 16px;
-        margin-right: 15px;
-        z-index: 1;
-    }
-
-    .event-tab.active::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 100%;
-        width: 0;
-        height: 0;
-        border-top: 17px solid transparent;
-        border-bottom: 17px solid transparent;
-        border-left: 13px solid #f2efe9;
     }
 
     /* ----- Photo carousel: three equal photos in a filmstrip, paginated one
@@ -428,8 +442,10 @@
             gap: 18px;
             padding: 24px 20px;
         }
-        .event-tab { font-size: 11.5px; padding: 0 13px; }
-        .event-tab.active { padding: 0 18px 0 13px; }
+        /* Keep the left padding clear of the notch or the label overlaps the
+           point of the tab before it. */
+        .event-tab { --notch: 9px; font-size: 11.5px; padding: 0 15px 0 21px; }
+        .event-tab:first-child { padding-left: 15px; }
     }
 
     @media (max-width: 480px) {

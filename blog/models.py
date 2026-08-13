@@ -1,7 +1,6 @@
 from io import BytesIO
 
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.urls import reverse
 from django.utils import timezone
@@ -168,22 +167,6 @@ class EventPhoto(models.Model):
         return False
 
 
-# Backward compatibility
-class EventImage(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='event_images/')
-    caption = models.CharField(max_length=200, blank=True)
-    is_featured = models.BooleanField(default=False)
-    order = models.IntegerField(default=0)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['order', '-is_featured', '-uploaded_at']
-
-    def __str__(self):
-        return f"Media for {self.event.title}"
-
-
 # =============================================================================
 # BB NOTES - Links to note.com articles
 # =============================================================================
@@ -286,86 +269,8 @@ class PageContent(models.Model):
 
 
 # =============================================================================
-# OTHER MODELS (kept for compatibility)
+# MEMBERS & ARTWORK
 # =============================================================================
-
-class Post(models.Model):
-    POST_TYPES = [
-        ('about', 'About Us'),
-        ('community', 'Community'),
-        ('event', 'Event'),
-        ('news', 'News'),
-        ('project', 'Project'),
-    ]
-    
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
-    content = models.TextField()
-    excerpt = models.TextField(max_length=300, blank=True)
-    post_type = models.CharField(max_length=20, choices=POST_TYPES, default='news')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
-    featured_image = models.ImageField(upload_to='posts/', blank=True, null=True)
-    is_published = models.BooleanField(default=False)
-    is_featured = models.BooleanField(default=False)
-    published_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-published_at', '-created_at']
-
-    def __str__(self):
-        return self.title
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        if self.is_published and not self.published_at:
-            self.published_at = timezone.now()
-        super().save(*args, **kwargs)
-
-
-class SiteConfiguration(models.Model):
-    site_name = models.CharField(max_length=100, default="Brush Bunni")
-    site_description = models.TextField(blank=True)
-    background_image = models.ImageField(upload_to='backgrounds/', blank=True, null=True)
-    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
-    contact_email = models.EmailField(blank=True)
-    discord_link = models.URLField(blank=True)
-    instagram_link = models.URLField(blank=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = "Site Configuration"
-        verbose_name_plural = "Site Configuration"
-
-    def __str__(self):
-        return self.site_name
-
-    def save(self, *args, **kwargs):
-        if self.is_active:
-            SiteConfiguration.objects.filter(is_active=True).update(is_active=False)
-        super().save(*args, **kwargs)
-
-
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
-    description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default="#6c5ce7")
-    icon = models.ImageField(upload_to='category_icons/', blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "Categories"
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
 
 class Member(models.Model):
     """A person shown on the Members page.
@@ -421,7 +326,6 @@ class Gallery(models.Model):
     description = models.TextField(blank=True)
     artist = models.ForeignKey(Member, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='gallery/')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.CharField(max_length=200, blank=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -435,34 +339,9 @@ class Gallery(models.Model):
         return f"{self.title} by {self.artist}"
 
 
-class Product(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='products/')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    stock_quantity = models.PositiveIntegerField(default=0)
-    is_available = models.BooleanField(default=True)
-    is_digital = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse('product_detail', kwargs={'slug': self.slug})
-
-    @property
-    def is_in_stock(self):
-        return self.stock_quantity > 0 if not self.is_digital else True
-
+# =============================================================================
+# CONTACT
+# =============================================================================
 
 class ContactMessage(models.Model):
     name = models.CharField(max_length=100)
@@ -477,12 +356,3 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.subject} - {self.name}"
-
-
-class NewsletterSubscriber(models.Model):
-    email = models.EmailField(unique=True)
-    is_active = models.BooleanField(default=True)
-    subscribed_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.email

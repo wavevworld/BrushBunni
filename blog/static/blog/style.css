@@ -45,12 +45,13 @@ body.page-project_bunni {
   background-image: url("bg_shop.jpg");
   background-image: image-set(url("bg_shop.webp") type("image/webp"), url("bg_shop.jpg") type("image/jpeg"));
 }
-/* These two are already small — plain JPEG, no WebP variant needed. */
+/* These two were 2560x1572 JPEGs holding a single flat colour — 48 KB each to
+   say what one line of CSS says. No image, so no download and no decode. */
 body.page-members {
-  background-image: url("bg_members.jpg");
+  background-color: #5cbeed;
 }
 body.page-contact {
-  background-image: url("bg_contact.jpg");
+  background-color: #ffa56e;
 }
 
 /* Lighter backgrounds on phones (~1200px wide instead of 1920px) */

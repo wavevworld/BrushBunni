@@ -206,7 +206,6 @@ JAZZMIN_SETTINGS = {
     "icons": {
         "blog.Event": "fas fa-calendar-alt",
         "blog.EventPhoto": "fas fa-images",
-        "blog.Post": "fas fa-file-alt",
         "blog.Member": "fas fa-users",
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",

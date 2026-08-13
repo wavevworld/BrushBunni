@@ -7,8 +7,7 @@ from django.http import HttpResponse
 from django.templatetags.static import static
 from django.utils import timezone
 
-from .models import (Event, BBNote, ContactMessage, Member, PageContent,
-                     SiteConfiguration)
+from .models import Event, BBNote, ContactMessage, Member, PageContent
 
 
 class ContactForm(forms.ModelForm):
@@ -29,17 +28,6 @@ class ContactForm(forms.ModelForm):
         return bool(self.data.get('website'))
 
 
-def get_site_config():
-    return SiteConfiguration.objects.filter(is_active=True).first()
-
-
-def base_context():
-    return {
-        'site_config': get_site_config(),
-        'current_year': timezone.now().year,
-    }
-
-
 def page_context(current_page, bg_image, title, description, **extra):
     """Shared per-page context.
 
@@ -52,15 +40,14 @@ def page_context(current_page, bg_image, title, description, **extra):
     """
     content = PageContent.objects.filter(page=current_page).first()
 
-    context = base_context()
-    context.update({
+    context = {
         'current_page': current_page,
         'bg_image': bg_image,
         'page_title': title,
         'page_description': (content.meta_description if content and
                              content.meta_description else description),
         'content': content,
-    })
+    }
     context.update(extra)
     return context
 

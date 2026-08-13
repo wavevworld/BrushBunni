@@ -1,14 +1,126 @@
 /* Brush Bunni — site styles.
-   Moved out of base.html so browsers cache it instead of re-downloading ~10KB
-   of inline CSS with every page. Image paths are relative: this file and the
+   Moved out of base.html so browsers cache it instead of re-downloading the
+   CSS with every page. Image paths are relative: this file and the
    backgrounds both live in blog/static/blog/. */
+
+/* =========================================================================
+   DESIGN TOKENS
+   One source of truth for colour, radius, shadow and layout. Before this
+   existed the site ran three unrelated purple families — #6c5ce7/#b06ae6 on
+   the event pages, #667eea/#f093fb on contact and BB Notes, #b565d8 for the
+   contact focus ring — so the same "primary button" looked different on
+   three pages. Everything below now resolves to --brand-*.
+   ========================================================================= */
+:root {
+  /* Brand */
+  --brand: #7b6cf6;
+  --brand-deep: #4b3fd1;
+  --brand-ink: #6c5ce7;
+  --brand-magenta: #b06ae6;
+  --brand-pink: #f0709b;
+  --brand-gradient: linear-gradient(135deg, var(--brand), var(--brand-magenta));
+  --accent-orange: #ff9a00;
+
+  /* Ink — text, darkest to lightest */
+  --ink-900: #111;
+  --ink-800: #222;
+  --ink-700: #333;
+  --ink-600: #444;
+  --ink-500: #666;
+  --ink-400: #888;
+  --ink-300: #aaa;
+  --ink-200: #ccc;
+  --ink-muted: #8a8a9a;
+
+  /* Surfaces */
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-page: rgba(255, 255, 255, 0.9);
+  --surface-soft: rgba(255, 255, 255, 0.75);
+  --surface-tint: #faf9ff;
+  --surface-tint-strong: #ece9ff;
+  --surface-field: #fafafa;
+  --hairline: rgba(0, 0, 0, 0.06);
+  --field-border: #ddd;
+
+  /* Dark surfaces used by the events pages */
+  --cream: #f2efe9;
+  --bar-dark: #4a4744;
+  --carousel-dark: #0f0f11;
+  --card-dark: #232323;
+
+  /* Feedback */
+  --danger: #d33;
+  --success-bg: #dcfce7;
+  --success-ink: #166534;
+
+  /* Radii */
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 34px rgba(0, 0, 0, 0.22);
+  --shadow-brand: 0 6px 18px rgba(123, 108, 246, 0.4);
+  --shadow-brand-lg: 0 10px 24px rgba(123, 108, 246, 0.5);
+
+  /* Layout */
+  --sidebar-w: 280px;
+  --font: 'Inter', sans-serif;
+}
+
+/* =========================================================================
+   BASE RESET
+   Bootstrap used to supply these silently. Dropping the CDN bundle dropped
+   them too: without the border-box rule, .content-box added its 30px padding
+   *outside* its calc() width and overhung the viewport by 60px.
+   ========================================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  line-height: 1.2;
+}
+
+p {
+  margin-top: 0;
+}
+
+/* Form controls do not inherit typography from the page by default — the UA
+   gives them their own font. Without this the Send-message button rendered
+   5px shorter than it used to. */
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+body {
+  /* Also Bootstrap's. The browser default (~1.2) tightened every block of
+     text on the site, most visibly the sidebar menu. */
+  line-height: 1.5;
+}
 
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font);
   overflow-y: auto;
   overflow-x: hidden; /* guard against accidental sideways scroll on mobile */
 }
@@ -108,7 +220,7 @@ body::-webkit-scrollbar-thumb:hover {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 280px;
+  width: var(--sidebar-w);
   background-color: transparent;
   color: white;
   padding: 30px 0 30px 20px;
@@ -180,6 +292,14 @@ body::-webkit-scrollbar-thumb:hover {
   width: auto;
 }
 
+/* This replaces Bootstrap. The CDN bundle (~230 KB) was loaded on every page
+   to supply exactly this: `.nav` as a flex container and `.flex-column` to
+   stand it upright. */
+.nav {
+  display: flex;
+  flex-direction: column;
+}
+
 .nav-link {
   font-family: 'Poppins', sans-serif;
   color: white;
@@ -188,6 +308,7 @@ body::-webkit-scrollbar-thumb:hover {
   font-weight: 500;
   letter-spacing: 0.5px;
   margin-bottom: 6px;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 
@@ -225,7 +346,7 @@ body::-webkit-scrollbar-thumb:hover {
   flex-grow: 1;
   position: relative;
   overflow: hidden;
-  margin-left: 280px;
+  margin-left: var(--sidebar-w);
   /* A flex item defaults to min-width:auto, which lets wide children (the
      events carousel) stretch this column past the viewport. */
   min-width: 0;
@@ -233,15 +354,15 @@ body::-webkit-scrollbar-thumb:hover {
 
 .content-box {
   position: fixed;
-  left: 280px;
+  left: var(--sidebar-w);
   margin-top: var(--content-offset, 60px);
-  width: calc(100vw - 320px);
+  width: calc(100vw - var(--sidebar-w) - 40px);
   max-width: 90%;
   max-height: 80vh;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: var(--surface-page);
   padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
   overflow-y: auto;
   z-index: 1;
   transition: all 0.25s ease;
@@ -249,10 +370,10 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* The events pages lay out their own cards, so they drop the white box.
    These flow in the normal document instead of being position:fixed — the
-   fixed box was offset by the 280px sidebar *and* sized at 100% of the
+   fixed box was offset by the sidebar *and* sized at 100% of the
    viewport, so its right-hand side was cut off outside the screen. */
 body.page-events .content {
-  margin-left: 280px;
+  margin-left: var(--sidebar-w);
   overflow: visible;
 }
 body.page-events .content-box {
@@ -325,7 +446,7 @@ body.page-events .content-box {
   width: 46px;
   height: 46px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
   cursor: pointer;
@@ -425,7 +546,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
     margin: 0 14px 24px;
     padding: 20px !important;
     overflow: visible;
-    background-color: rgba(255, 255, 255, 0.92);
+    background-color: var(--surface-strong);
   }
 
   /* The event pages bring their own surfaces, so keep the wrapper transparent */
@@ -441,6 +562,67 @@ body.menu-open .menu-toggle span:nth-child(3) {
   }
 }
 
+/* =========================================================================
+   BUTTONS
+   One component with modifiers. This replaced three separately-invented
+   buttons: .page-cta (135deg purple gradient), .ev-btn--primary (the same
+   gradient, re-declared) and .contact-submit (a 45deg blue/pink gradient and
+   a 25px radius). .page-cta / .ev-btn / .contact-submit are kept as aliases
+   so existing templates keep working.
+   ========================================================================= */
+.btn,
+.page-cta,
+.ev-btn,
+.contact-submit {
+  display: inline-block;
+  padding: 13px 26px;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover,
+.page-cta:hover,
+.ev-btn:hover,
+.contact-submit:hover {
+  transform: translateY(-2px);
+}
+
+.btn--primary,
+.page-cta,
+.ev-btn--primary,
+.contact-submit {
+  background: var(--brand-gradient);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+
+.btn--primary:hover,
+.page-cta:hover,
+.ev-btn--primary:hover,
+.contact-submit:hover {
+  color: #fff;
+  box-shadow: var(--shadow-brand-lg);
+}
+
+.btn--ghost,
+.ev-btn--ghost {
+  background: var(--surface);
+  color: var(--brand-deep);
+  box-shadow: none;
+}
+
+.btn--ghost:hover,
+.ev-btn--ghost:hover {
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
 /* ===== Editable page content (About / Community / Members / Project Bunni) ===== */
 .page-heading {
   font-size: 2rem;
@@ -449,13 +631,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
 }
 
 .page-intro {
-  color: #666;
+  color: var(--ink-500);
   font-size: 1.05rem;
   margin: 0 0 1.4rem;
 }
 
 .page-body {
-  color: #333;
+  color: var(--ink-700);
   line-height: 1.65;
   max-width: 68ch;
 }
@@ -468,26 +650,12 @@ body.menu-open .menu-toggle span:nth-child(3) {
   display: block;
   max-width: 100%;
   height: auto;
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   margin: 0 0 1.5rem;
 }
 
 .page-cta {
-  display: inline-block;
   margin-top: 0.6rem;
-  padding: 11px 24px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #7b6cf6, #b06ae6);
-  color: #fff;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.page-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(123, 108, 246, 0.35);
-  color: #fff;
 }
 
 /* ===== Members grid ===== */
@@ -501,9 +669,9 @@ body.menu-open .menu-toggle span:nth-child(3) {
 }
 
 .member-card {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
   padding: 1.1rem 1rem 1rem;
   text-align: center;
 }
@@ -515,7 +683,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   object-fit: cover;
   margin: 0 auto 0.7rem;
   display: block;
-  background: #ece9ff;
+  background: var(--surface-tint-strong);
 }
 
 .member-avatar--empty {
@@ -535,13 +703,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #8a7fd4;
+  color: var(--brand-ink);
   margin: 0 0 0.6rem;
 }
 
 .member-bio {
   font-size: 0.9rem;
-  color: #555;
+  color: var(--ink-500);
   line-height: 1.5;
   margin: 0 0 0.7rem;
 }
@@ -556,12 +724,210 @@ body.menu-open .menu-toggle span:nth-child(3) {
 
 .member-links a {
   font-size: 0.85rem;
-  color: #6c5ce7;
+  color: var(--brand-ink);
   text-decoration: none;
 }
 
 .member-links a:hover {
   text-decoration: underline;
+}
+
+/* =========================================================================
+   BB NOTES  (was inline in be_online.html)
+   ========================================================================= */
+.bb-notes-section h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #eee;
+}
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.note-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--surface-field);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.note-card:hover {
+  background: #fff;
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.note-card.pinned {
+  border-left: 3px solid var(--accent-orange);
+  background: #fffaf0;
+}
+
+.note-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.note-thumb-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-sm);
+  background: var(--brand-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.note-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink-700);
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-desc {
+  font-size: 0.85rem;
+  color: var(--ink-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-date {
+  font-size: 0.8rem;
+  color: var(--ink-300);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.note-arrow {
+  color: var(--ink-200);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.note-card:hover .note-arrow,
+.note-card:hover .note-title {
+  color: var(--brand);
+}
+
+.empty-notes {
+  text-align: center;
+  padding: 40px 20px;
+  color: #bbb;
+}
+
+.empty-notes .icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  .note-card {
+    padding: 12px 14px;
+  }
+  .note-thumb,
+  .note-thumb-placeholder {
+    width: 44px;
+    height: 44px;
+  }
+  .note-date {
+    display: none;
+  }
+}
+
+/* =========================================================================
+   CONTACT FORM  (was inline in contact.html)
+   ========================================================================= */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  max-width: 560px;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  color: var(--ink-700);
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ink-700);
+  background: var(--surface-field);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--brand-magenta);
+  box-shadow: 0 0 0 3px rgba(176, 106, 230, 0.18);
+  background: #fff;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.field .errorlist {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0;
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+.contact-submit {
+  align-self: flex-start;
+  padding: 13px 34px;
+}
+
+.form-success {
+  background: var(--success-bg);
+  color: var(--success-ink);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
 }
 
 /* =========================================================================
@@ -573,16 +939,16 @@ body.menu-open .menu-toggle span:nth-child(3) {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 4px 40px;
-  color: #222;
+  color: var(--ink-800);
 }
 
 .ev-back {
   display: inline-block;
   margin-bottom: 18px;
   padding: 9px 18px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #333;
+  border-radius: var(--r-pill);
+  background: var(--surface-strong);
+  color: var(--ink-700);
   font-weight: 600;
   font-size: 0.95rem;
   text-decoration: none;
@@ -593,13 +959,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
 .ev-back:hover {
   background: #fff;
   transform: translateX(-2px);
-  color: #111;
+  color: var(--ink-900);
 }
 
 /* ----- Hero ----- */
 .ev-hero {
   position: relative;
-  border-radius: 20px;
+  border-radius: var(--r-2xl);
   overflow: hidden;
   padding: clamp(28px, 5vw, 56px);
   min-height: 240px;
@@ -608,12 +974,12 @@ body.menu-open .menu-toggle span:nth-child(3) {
   background-image: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.2) 100%), var(--hero);
   background-size: cover;
   background-position: center;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow-lg);
 }
 
 /* No photo yet — brand gradient instead of an empty grey box */
 .ev-hero--plain {
-  background-image: linear-gradient(135deg, #6c5ce7, #b06ae6 55%, #f0709b);
+  background-image: linear-gradient(135deg, var(--brand-ink), var(--brand-magenta) 55%, var(--brand-pink));
 }
 
 .ev-hero-inner {
@@ -631,13 +997,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
 
 .ev-badge {
   padding: 5px 13px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   background: rgba(255, 255, 255, 0.9);
-  color: #333;
+  color: var(--ink-700);
 }
 
 .ev-badge--upcoming {
@@ -680,13 +1046,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
   gap: 1px;
   margin: 18px 0 0;
   padding: 0;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
+  background: var(--hairline);
+  border-radius: var(--r-xl);
   overflow: hidden;
 }
 
 .ev-fact {
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   padding: 16px 18px;
 }
 
@@ -695,7 +1061,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a8a9a;
+  color: var(--ink-muted);
   margin-bottom: 5px;
 }
 
@@ -703,7 +1069,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #222;
+  color: var(--ink-800);
 }
 
 /* ----- Actions ----- */
@@ -714,42 +1080,13 @@ body.menu-open .menu-toggle span:nth-child(3) {
   margin: 20px 0 0;
 }
 
-.ev-btn {
-  display: inline-block;
-  padding: 13px 26px;
-  border-radius: 999px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.ev-btn--primary {
-  background: linear-gradient(135deg, #7b6cf6, #b06ae6);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(123, 108, 246, 0.4);
-}
-
-.ev-btn--ghost {
-  background: rgba(255, 255, 255, 0.94);
-  color: #4b3fd1;
-}
-
-.ev-btn:hover {
-  transform: translateY(-2px);
-}
-
-.ev-btn--primary:hover {
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(123, 108, 246, 0.5);
-}
-
 /* ----- Sections ----- */
 .ev-section {
   margin-top: 26px;
   padding: 24px clamp(18px, 3vw, 30px);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface);
   border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .ev-h2 {
@@ -759,20 +1096,20 @@ body.menu-open .menu-toggle span:nth-child(3) {
   margin: 0 0 16px;
   font-size: 1.35rem;
   font-weight: 700;
-  color: #222;
+  color: var(--ink-800);
 }
 
 .ev-count {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #6c5ce7;
+  color: var(--brand-ink);
   background: #efecff;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   padding: 2px 10px;
 }
 
 .ev-body {
-  color: #444;
+  color: var(--ink-600);
   line-height: 1.7;
   max-width: 70ch;
 }
@@ -800,10 +1137,10 @@ body.menu-open .menu-toggle span:nth-child(3) {
   width: 100%;
   padding: 0;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   cursor: zoom-in;
-  background: #ece9ff;
+  background: var(--surface-tint-strong);
   line-height: 0;
 }
 
@@ -812,7 +1149,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   transition: transform 0.35s ease;
 }
 
@@ -823,7 +1160,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
 .ev-caption {
   margin: 7px 2px 0;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--ink-500);
   line-height: 1.4;
 }
 
@@ -840,10 +1177,10 @@ body.menu-open .menu-toggle span:nth-child(3) {
 .ev-related-card {
   display: flex;
   flex-direction: column;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
-  background: #faf9ff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: var(--surface-tint);
+  border: 1px solid var(--hairline);
   text-decoration: none;
   color: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -856,7 +1193,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
 
 .ev-related-img {
   display: block;
-  background: #ece9ff;
+  background: var(--surface-tint-strong);
   line-height: 0;
 }
 
@@ -923,7 +1260,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   max-width: 100%;
   max-height: 80vh;
   object-fit: contain;
-  border-radius: 10px;
+  border-radius: var(--r-sm);
 }
 
 .ev-lb-figure figcaption {
@@ -986,7 +1323,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   body.page-events .content-box {
     margin: 0 10px 20px;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: var(--r-md);
   }
   .logo img {
     height: 100px;
@@ -995,4 +1332,456 @@ body.menu-open .menu-toggle span:nth-child(3) {
     font-size: 1.2rem;
     padding: 8px 20px;
   }
+}
+
+/* =========================================================================
+   EVENTS LIST PAGE  (was inline in events.html)
+   ========================================================================= */
+/* Override default content box for events page */
+.page-events .content-box {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin-top: 0 !important;
+    position: static !important;
+}
+
+/* Main events container */
+.events-container {
+    width: 100%;
+    padding: 40px 40px 40px 0;
+    margin: 0;
+    min-height: 100vh;
+}
+
+/* Combined wrapper with rounded corners — one continuous card holding
+   every section (previous events, carousel, upcoming), matching the
+   reference design. */
+.events-wrapper {
+    background: rgba(26, 26, 28, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+/* Previous Events Section */
+.previous-events-section {
+    padding: 32px 32px 28px;
+}
+
+.events-title {
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 18px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ----- Tabs: horizontally scrollable strip on a shared gray bar -----
+   There are more past events than fit on one screen, so the strip
+   scrolls instead of overflowing the rounded card (the old fixed-width
+   tab strip broke as soon as an 8th event was added). Prev/next arrows
+   (like the photo carousel below) make the overflow discoverable —
+   the native scrollbar is hidden and mouse wheel doesn't scroll
+   sideways, so without the arrows the tabs past the first screenful
+   were unreachable. */
+.event-tabs-wrapper {
+    position: relative;
+    margin: 0 0 22px;
+    background: var(--bar-dark);
+    border-radius: 16px;
+}
+
+.event-tabs-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    border-radius: inherit;
+}
+.event-tabs-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Fade behind the arrow buttons, same technique as the photo carousel. */
+.event-tabs-wrapper::before,
+.event-tabs-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50px;
+    z-index: 2;
+    pointer-events: none;
+}
+.event-tabs-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bar-dark), transparent);
+}
+.event-tabs-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bar-dark), transparent);
+}
+
+.event-tabs-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    z-index: 3;
+    font-size: 26px;
+    line-height: 1;
+    padding: 6px;
+    transition: color 0.2s ease;
+}
+
+.event-tabs-nav:hover {
+    color: #fff;
+}
+
+.event-tabs-nav.prev { left: 0; }
+.event-tabs-nav.next { right: 0; }
+
+.event-tabs-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.event-tabs-container {
+    display: flex;
+    align-items: stretch;
+    height: 34px;
+    width: max-content;
+    padding: 0 10px;
+}
+
+/* Every tab is a breadcrumb segment: a rectangle whose right edge is cut
+   to a point and whose left edge carries the matching notch, so the strip
+   reads as one connected chain of arrows — the reference mockup — rather
+   than a row of loose labels with one highlighted.
+
+   The shape is a clip-path, not the pseudo-element triangle this replaced,
+   because a triangle has to be recoloured and re-sized per state; a
+   clip-path is one geometry that every tab shares whatever its fill. */
+.event-tab {
+    --notch: 11px;
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.72);
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0 20px 0 26px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    clip-path: polygon(
+        0 0,
+        calc(100% - var(--notch)) 0,
+        100% 50%,
+        calc(100% - var(--notch)) 100%,
+        0 100%,
+        var(--notch) 50%);
+    /* Pull each tab left so its notch swallows the previous tab's point,
+       leaving a constant-width slice of the dark bar behind as the
+       divider — 4px measured perpendicular to the arrow, not 4px of
+       horizontal margin. */
+    margin-right: calc(4px - var(--notch));
+}
+
+/* Nothing points into the first tab, so it keeps a straight left edge and
+   lets the bar's own rounded corner cap the strip. */
+.event-tab:first-child {
+    padding-left: 18px;
+    clip-path: polygon(
+        0 0,
+        calc(100% - var(--notch)) 0,
+        100% 50%,
+        calc(100% - var(--notch)) 100%,
+        0 100%);
+}
+
+.event-tab:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.event-tab.active {
+    background: var(--cream);
+    color: var(--card-dark);
+}
+
+/* ----- Photo carousel: three equal photos in a filmstrip, paginated one
+   at a time ----- Slide width/position is computed in JS (see
+   updateCarousel) so it stays correct at any viewport width. Arrows sit
+   in a dark gutter inside the rounded card rather than overlapping the
+   photos, echoing the reference design's arrows-outside-the-frame look. */
+.gallery-carousel {
+    position: relative;
+    height: 500px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--carousel-dark);
+    padding: 0 46px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.carousel-viewport {
+    width: 100%;
+    height: 88%;
+    overflow: hidden;
+}
+
+.carousel-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 0;
+    will-change: transform;
+}
+
+.gallery-slide {
+    height: 100%;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+
+.gallery-slide img,
+.gallery-slide video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--brand-ink), var(--brand-magenta) 55%, var(--brand-pink));
+    color: white;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.gallery-placeholder .emoji {
+    font-size: 56px;
+}
+
+.gallery-placeholder .text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Plain chevrons in the carousel's own dark gutter — no button chrome,
+   matching the reference design's arrows-outside-the-photos look. */
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    z-index: 10;
+    font-size: 34px;
+    line-height: 1;
+    padding: 8px;
+    transition: color 0.2s ease;
+}
+
+.carousel-nav:hover {
+    color: #fff;
+}
+
+.carousel-nav.prev { left: 4px; }
+.carousel-nav.next { right: 4px; }
+
+.carousel-nav:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+/* ----- Upcoming Events ----- */
+.upcoming-section {
+    background: var(--accent-orange);
+}
+
+.upcoming-header {
+    color: white;
+    font-size: 1.7rem;
+    font-weight: 700;
+    padding: 24px 32px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.upcoming-content {
+    background: white;
+    padding: 36px 32px 40px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px 24px;
+}
+
+/* Minimal card: coloured icon + text, no box/shadow — matches the flat
+   reference design instead of the previous drop-shadowed grey tile. */
+.upcoming-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.upcoming-card-icon {
+    width: 74px;
+    height: 74px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.upcoming-card:nth-child(3n+1) .upcoming-card-icon { background: #d8846c; }
+.upcoming-card:nth-child(3n+2) .upcoming-card-icon { background: #c7a83c; }
+.upcoming-card:nth-child(3n+3) .upcoming-card-icon { background: #a86cd1; }
+
+.upcoming-card-icon img {
+    width: 55%;
+    height: 55%;
+    filter: brightness(0) invert(1);
+    object-fit: contain;
+}
+
+.upcoming-card-details {
+    min-width: 0;
+}
+
+.upcoming-card-name {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink-800);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.upcoming-card-link {
+    color: var(--ink-500);
+    font-size: 14px;
+}
+
+.upcoming-card:hover .upcoming-card-link {
+    color: var(--accent-orange);
+    text-decoration: underline;
+}
+
+.upcoming-empty {
+    grid-column: 1 / -1;
+    color: #999;
+    padding: 10px 0;
+}
+
+/* Lightbox Modal */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    cursor: zoom-out;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.lightbox-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.lightbox-content img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 30px;
+    right: 50px;
+    color: white;
+    font-size: 45px;
+    font-weight: 300;
+    cursor: pointer;
+    z-index: 10000;
+    transition: all 0.3s ease;
+}
+
+.lightbox-close:hover {
+    color: var(--accent-orange);
+    transform: scale(1.2) rotate(90deg);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .events-container { padding: 20px; }
+    .gallery-carousel { height: 420px; padding: 0 34px; }
+    .upcoming-content { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .events-container { padding: 15px; }
+    .events-title { font-size: 1.8rem; }
+    .previous-events-section { padding: 22px 20px 20px; }
+    .gallery-carousel { height: 320px; padding: 0 26px; }
+    .carousel-nav { font-size: 26px; }
+    .upcoming-content {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px 20px;
+    }
+    /* Keep the left padding clear of the notch or the label overlaps the
+       point of the tab before it. */
+    .event-tab { --notch: 9px; font-size: 11.5px; padding: 0 15px 0 21px; }
+    .event-tab:first-child { padding-left: 15px; }
+}
+
+@media (max-width: 480px) {
+    .gallery-carousel { height: 260px; padding: 0 20px; }
+    .carousel-nav { font-size: 20px; padding: 4px; }
 }

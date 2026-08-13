@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from .models import Event
+from .models import Event, Member
 
 
 class StaticViewSitemap(Sitemap):
@@ -11,7 +11,7 @@ class StaticViewSitemap(Sitemap):
     changefreq = "monthly"
 
     def items(self):
-        return ['home', 'community', 'be_online', 'events',
+        return ['home', 'community', 'gallery', 'be_online', 'events',
                 'project_bunni', 'members', 'contact']
 
     def location(self, item):
@@ -32,7 +32,16 @@ class EventSitemap(Sitemap):
         return obj.updated_at
 
 
+class MemberSitemap(Sitemap):
+    changefreq = "monthly"
+    priority = 0.5
+
+    def items(self):
+        return Member.objects.filter(is_visible=True)
+
+
 sitemaps = {
     'static': StaticViewSitemap,
     'events': EventSitemap,
+    'members': MemberSitemap,
 }

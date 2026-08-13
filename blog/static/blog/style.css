@@ -140,7 +140,8 @@ body.page-home {
   background-image: url("bg_about.jpg");
   background-image: image-set(url("bg_about.webp") type("image/webp"), url("bg_about.jpg") type("image/jpeg"));
 }
-body.page-community {
+body.page-community,
+body.page-gallery {
   background-image: url("bg_community.jpg");
   background-image: image-set(url("bg_community.webp") type("image/webp"), url("bg_community.jpg") type("image/jpeg"));
 }
@@ -172,7 +173,8 @@ body.page-contact {
     background-image: url("bg_about-mobile.jpg");
     background-image: image-set(url("bg_about-mobile.webp") type("image/webp"), url("bg_about-mobile.jpg") type("image/jpeg"));
   }
-  body.page-community {
+  body.page-community,
+  body.page-gallery {
     background-image: url("bg_community-mobile.jpg");
     background-image: image-set(url("bg_community-mobile.webp") type("image/webp"), url("bg_community-mobile.jpg") type("image/jpeg"));
   }
@@ -1784,4 +1786,248 @@ body.menu-open .menu-toggle span:nth-child(3) {
 @media (max-width: 480px) {
     .gallery-carousel { height: 260px; padding: 0 20px; }
     .carousel-nav { font-size: 20px; padding: 4px; }
+}
+
+/* =========================================================================
+   GALLERY + MEMBER PROFILES
+   ========================================================================= */
+
+/* ----- Filter pills ----- */
+.gal-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 1.6rem;
+}
+
+.gal-pill {
+  padding: 6px 15px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink-600);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.gal-pill:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--ink-800);
+}
+
+.gal-pill.active {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+
+/* Event filters read as a different kind of thing than artist filters. */
+.gal-pill--event {
+  background: transparent;
+  border: 1px solid var(--hairline);
+}
+
+/* ----- Artwork grid ----- */
+.gal-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px;
+}
+
+.gal-item {
+  margin: 0;
+}
+
+.gal-thumb {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  cursor: zoom-in;
+  background: var(--surface-tint-strong);
+  line-height: 0;
+}
+
+.gal-thumb img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--r-lg);
+  transition: transform 0.35s ease;
+}
+
+.gal-thumb:hover img {
+  transform: scale(1.04);
+}
+
+.gal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 9px 2px 0;
+}
+
+.gal-title {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--ink-800);
+}
+
+.gal-credit {
+  font-size: 0.85rem;
+  color: var(--brand-ink);
+  text-decoration: none;
+}
+
+.gal-credit:hover {
+  text-decoration: underline;
+}
+
+/* A guest artist has no profile to link to, so it must not look clickable. */
+.gal-credit--plain {
+  color: var(--ink-500);
+}
+
+.gal-event {
+  font-size: 0.78rem;
+  color: var(--ink-400);
+  text-decoration: none;
+}
+
+.gal-event:hover {
+  color: var(--ink-600);
+  text-decoration: underline;
+}
+
+.gal-empty {
+  color: var(--ink-500);
+  padding: 24px 0;
+}
+
+/* ----- Member profile ----- */
+.mem-back {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  color: var(--brand-ink);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.mem-back:hover {
+  text-decoration: underline;
+}
+
+.mem-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.mem-avatar {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--surface-tint-strong);
+}
+
+.mem-avatar--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.mem-ident {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.mem-role {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-ink);
+  margin: 0 0 0.8rem;
+}
+
+.mem-bio {
+  color: var(--ink-600);
+  line-height: 1.6;
+  max-width: 60ch;
+  margin: 0 0 0.9rem;
+}
+
+.mem-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.mem-links a {
+  color: var(--brand-ink);
+  text-decoration: none;
+}
+
+.mem-links a:hover {
+  text-decoration: underline;
+}
+
+.mem-discord {
+  color: var(--ink-400);
+}
+
+.mem-h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink-800);
+  margin: 0 0 1rem;
+}
+
+/* ----- Member cards become links ----- */
+.member-card-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.member-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.member-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-sm);
+}
+
+.member-count {
+  font-size: 0.8rem;
+  color: var(--brand-ink);
+  font-weight: 600;
+  margin: 0.4rem 0 0;
+}
+
+@media (max-width: 480px) {
+  .gal-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .mem-avatar {
+    width: 96px;
+    height: 96px;
+  }
 }

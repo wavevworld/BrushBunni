@@ -4,10 +4,11 @@ from django import forms
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import HttpResponse
+from django.db.models import Count, Q
 from django.templatetags.static import static
 from django.utils import timezone
 
-from .models import Event, BBNote, ContactMessage, Member, PageContent
+from .models import Event, BBNote, ContactMessage, Gallery, Member, PageContent
 
 
 class ContactForm(forms.ModelForm):
@@ -122,11 +123,69 @@ def project_bunni(request):
 
 
 def members(request):
+    # annotate so a card can say how many pieces a member has without a query
+    # per card in the template.
+    people = Member.objects.filter(is_visible=True).annotate(
+        artwork_count=Count('artworks', filter=Q(artworks__is_visible=True))
+    )
     return render(request, 'blog/members.html', page_context(
         'members', 'blog/bg_members.jpg',
         "Members — Brush Bunni",
         "Meet the members of the Brush Bunni art community.",
-        members=Member.objects.filter(is_visible=True),
+        members=people,
+    ))
+
+
+def member_detail(request, slug):
+    """One member's profile, with the artwork credited to them."""
+    member = get_object_or_404(Member, slug=slug, is_visible=True)
+    artworks = member.artworks.filter(is_visible=True).select_related('event')
+
+    return render(request, 'blog/member_detail.html', page_context(
+        'members', 'blog/bg_members.jpg',
+        f"{member.name} — Brush Bunni",
+        member.bio[:160] or f"{member.name} — {member.get_role_display()} "
+                            f"in the Brush Bunni art community.",
+        member=member,
+        artworks=artworks,
+        og_image=member.avatar.url if member.avatar else None,
+        og_type='profile',
+    ))
+
+
+def gallery(request):
+    """Community artwork, optionally filtered to one artist or one event.
+
+    The filters are read from the querystring rather than being separate URLs
+    so a filtered view stays shareable and needs no extra routes.
+    """
+    artworks = (Gallery.objects.filter(is_visible=True)
+                .select_related('artist', 'event'))
+
+    artist_slug = request.GET.get('artist', '')
+    event_slug = request.GET.get('event', '')
+    if artist_slug:
+        artworks = artworks.filter(artist__slug=artist_slug)
+    if event_slug:
+        artworks = artworks.filter(event__slug=event_slug)
+
+    # Only offer a filter for artists/events that actually have visible work,
+    # so the pill row can never lead to an empty grid.
+    artists = Member.objects.filter(
+        is_visible=True, artworks__is_visible=True).distinct()
+    events = Event.objects.filter(
+        is_active=True, artworks__is_visible=True).distinct()
+
+    return render(request, 'blog/gallery.html', page_context(
+        'gallery', 'blog/bg_community.jpg',
+        "Gallery — Brush Bunni",
+        "Artwork from the Brush Bunni community — paintings, illustrations "
+        "and pieces shown at our events.",
+        artworks=artworks,
+        artists=artists,
+        events=events,
+        active_artist=artist_slug,
+        active_event=event_slug,
     ))
 
 

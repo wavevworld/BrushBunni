@@ -288,6 +288,9 @@ class Member(models.Model):
     ]
 
     name = models.CharField(max_length=100, help_text="Name shown on the site")
+    slug = models.SlugField(max_length=120, unique=True, blank=True,
+                            help_text="Auto-filled from the name; used in the "
+                                      "profile page URL")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
     bio = models.TextField(blank=True, help_text="A short line or two about them")
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
@@ -304,10 +307,26 @@ class Member(models.Model):
         ordering = ['-is_featured', 'order', 'name']
 
     def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = self._unique_slug()
         # Avatars render at ~160px, so anything above 600px is wasted bytes.
         if self.avatar and self._avatar_is_new():
             optimize_image_field(self.avatar, max_width=600, quality=85)
         super().save(*args, **kwargs)
+
+    def _unique_slug(self):
+        """Two members can share a name, but the URL cannot.
+
+        Falls back to "member" when slugify() returns nothing at all, which is
+        what happens for a name written entirely in Japanese.
+        """
+        base = slugify(self.name) or "member"
+        slug, n = base, 2
+        taken = Member.objects.exclude(pk=self.pk)
+        while taken.filter(slug=slug).exists():
+            slug = f"{base}-{n}"
+            n += 1
+        return slug
 
     def _avatar_is_new(self):
         if not self.pk:
@@ -317,26 +336,74 @@ class Member(models.Model):
         except Member.DoesNotExist:
             return True
 
+    def get_absolute_url(self):
+        return reverse('member_detail', kwargs={'slug': self.slug})
+
     def __str__(self):
         return self.name
 
 
 class Gallery(models.Model):
+    """One piece of artwork shown in the community gallery.
+
+    Submissions arrive through the per-event Google Form and are published
+    here from the admin, so there is deliberately no public upload path.
+    """
+
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    artist = models.ForeignKey(Member, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='gallery/')
+
+    # Credit. `artist` links the piece to a Member profile; `artist_name`
+    # covers guest artists who exhibit at a BB Festa without being members.
+    # SET_NULL, not CASCADE: removing someone from the Members page must not
+    # delete the artwork they contributed.
+    artist = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True,
+                               blank=True, related_name='artworks')
+    artist_name = models.CharField(
+        max_length=120, blank=True,
+        help_text="Credit for an artist who is not on the Members page. "
+                  "Ignored when an artist is chosen above.")
+
+    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True,
+                              blank=True, related_name='artworks',
+                              help_text="Optional: the event this was shown at")
     tags = models.CharField(max_length=200, blank=True)
-    is_featured = models.BooleanField(default=False)
+
+    is_featured = models.BooleanField(default=False, help_text="Show first")
+    is_visible = models.BooleanField(default=True, help_text="Show on the website")
+    order = models.PositiveIntegerField(
+        default=0, help_text="Lower numbers appear first")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name = "Artwork"
         verbose_name_plural = "Gallery"
-        ordering = ['-created_at']
+        ordering = ['-is_featured', 'order', '-created_at']
+
+    def save(self, *args, **kwargs):
+        if self.image and self._image_is_new():
+            optimize_image_field(self.image, max_width=1600, quality=85)
+        super().save(*args, **kwargs)
+
+    def _image_is_new(self):
+        if not self.pk:
+            return True
+        try:
+            return Gallery.objects.get(pk=self.pk).image.name != self.image.name
+        except Gallery.DoesNotExist:
+            return True
+
+    @property
+    def credit(self):
+        """Who to show under the piece, whether or not they have a profile."""
+        if self.artist:
+            return self.artist.name
+        return self.artist_name or "Unknown artist"
 
     def __str__(self):
-        return f"{self.title} by {self.artist}"
+        return f"{self.title} by {self.credit}"
 
 
 # =============================================================================

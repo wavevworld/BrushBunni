@@ -1,0 +1,58 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+  <a class="mem-back" href="{% url 'members' %}">&larr; All members</a>
+
+  <header class="mem-header">
+    {% if member.avatar %}
+      <img class="mem-avatar" src="{{ member.avatar.url }}" alt="{{ member.name }}">
+    {% else %}
+      <span class="mem-avatar mem-avatar--empty" aria-hidden="true">🐰</span>
+    {% endif %}
+
+    <div class="mem-ident">
+      <h1 class="page-heading">{{ member.name }}</h1>
+      <p class="mem-role">{{ member.get_role_display }}</p>
+
+      {% if member.bio %}<p class="mem-bio">{{ member.bio }}</p>{% endif %}
+
+      {% if member.portfolio_url or member.instagram_handle or member.discord_username %}
+        <p class="mem-links">
+          {% if member.portfolio_url %}
+            <a href="{{ member.portfolio_url }}" target="_blank" rel="noopener">Portfolio</a>
+          {% endif %}
+          {% if member.instagram_handle %}
+            <a href="https://www.instagram.com/{{ member.instagram_handle }}/"
+               target="_blank" rel="noopener">@{{ member.instagram_handle }}</a>
+          {% endif %}
+          {% if member.discord_username %}
+            <span class="mem-discord">{{ member.discord_username }}</span>
+          {% endif %}
+        </p>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if artworks %}
+    <h2 class="mem-h2">Artwork <span class="ev-count">{{ artworks|length }}</span></h2>
+    <ul class="gal-grid">
+      {% for art in artworks %}
+        <li class="gal-item">
+          <a class="gal-thumb" href="{% url 'gallery' %}?artist={{ member.slug }}">
+            <img src="{{ art.image.url }}" alt="{{ art.title }}" loading="lazy">
+          </a>
+          <div class="gal-meta">
+            <strong class="gal-title">{{ art.title }}</strong>
+            {% if art.event %}
+              <a class="gal-event" href="{{ art.event.get_absolute_url }}">
+                {{ art.event.display_name|default:art.event.title }}
+              </a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="gal-empty">No artwork from {{ member.name }} yet.</p>
+  {% endif %}
+{% endblock %}

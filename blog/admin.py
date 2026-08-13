@@ -14,7 +14,8 @@ from django import forms
 from django.http import JsonResponse
 from django.urls import path
 
-from .models import Event, EventPhoto, BBNote, ContactMessage, Member, PageContent
+from .models import (Event, EventPhoto, BBNote, ContactMessage, Gallery,
+                     Member, PageContent)
 
 
 # ─── Hide unnecessary sidebar items ─────────────────────────────────────────
@@ -570,3 +571,56 @@ class MemberAdmin(admin.ModelAdmin):
         js = ['admin/js/brushbunni.js']
 
 
+
+
+# =============================================================================
+# GALLERY
+# =============================================================================
+
+@admin.register(Gallery)
+class GalleryAdmin(admin.ModelAdmin):
+    list_display = ['art_thumb', 'title', 'credit_display', 'event',
+                    'is_featured', 'is_visible', 'order']
+    list_display_links = ['art_thumb', 'title']
+    list_editable = ['is_featured', 'is_visible', 'order']
+    list_filter = ['is_visible', 'is_featured', 'event', 'artist']
+    search_fields = ['title', 'description', 'artist_name', 'artist__name', 'tags']
+    autocomplete_fields = ['artist', 'event']
+    ordering = ['-is_featured', 'order', '-created_at']
+
+    fieldsets = [
+        (None, {
+            'fields': ['title', 'image', 'description'],
+        }),
+        ("Credit", {
+            'fields': ['artist', 'artist_name'],
+            'description': "Pick a member, or type a name for a guest artist "
+                           "who is not on the Members page.",
+        }),
+        ("Where it was shown", {
+            'fields': ['event', 'tags'],
+        }),
+        ("Visibility", {
+            'fields': [('is_featured', 'is_visible'), 'order'],
+        }),
+    ]
+
+    def art_thumb(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" class="list-thumb">', obj.image.url)
+        return format_html('<span class="list-thumb empty">🎨</span>')
+    art_thumb.short_description = ""
+
+    def credit_display(self, obj):
+        return obj.credit
+    credit_display.short_description = "Artist"
+
+    def save_model(self, request, obj, form, change):
+        # New pieces go to the end rather than colliding on order=0.
+        if not change and not obj.order:
+            obj.order = (Gallery.objects.aggregate(m=Max('order'))['m'] or 0) + 10
+        super().save_model(request, obj, form, change)
+
+    class Media:
+        css = {'all': ['admin/css/brushbunni.css']}
+        js = ['admin/js/brushbunni.js']

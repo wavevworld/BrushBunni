@@ -6,26 +6,30 @@
   {% if members %}
     <ul class="member-grid">
       {% for member in members %}
+        {% comment %}
+          The whole card is the link now — it used to be a dead end. External
+          links (portfolio, Instagram) can't sit inside it, so they moved to
+          the profile page.
+        {% endcomment %}
         <li class="member-card">
-          {% if member.avatar %}
-            <img class="member-avatar" src="{{ member.avatar.url }}" alt="{{ member.name }}" loading="lazy">
-          {% else %}
-            <span class="member-avatar member-avatar--empty" aria-hidden="true">🐰</span>
-          {% endif %}
-
-          <h2 class="member-name">{{ member.name }}</h2>
-          <p class="member-role">{{ member.get_role_display }}</p>
-
-          {% if member.bio %}<p class="member-bio">{{ member.bio }}</p>{% endif %}
-
-          <p class="member-links">
-            {% if member.portfolio_url %}
-              <a href="{{ member.portfolio_url }}" target="_blank" rel="noopener">Portfolio</a>
+          <a class="member-card-link" href="{{ member.get_absolute_url }}">
+            {% if member.avatar %}
+              <img class="member-avatar" src="{{ member.avatar.url }}" alt="{{ member.name }}" loading="lazy">
+            {% else %}
+              <span class="member-avatar member-avatar--empty" aria-hidden="true">🐰</span>
             {% endif %}
-            {% if member.instagram_handle %}
-              <a href="https://www.instagram.com/{{ member.instagram_handle }}/" target="_blank" rel="noopener">@{{ member.instagram_handle }}</a>
+
+            <h2 class="member-name">{{ member.name }}</h2>
+            <p class="member-role">{{ member.get_role_display }}</p>
+
+            {% if member.bio %}<p class="member-bio">{{ member.bio }}</p>{% endif %}
+
+            {% if member.artwork_count %}
+              <p class="member-count">
+                {{ member.artwork_count }} artwork{{ member.artwork_count|pluralize }}
+              </p>
             {% endif %}
-          </p>
+          </a>
         </li>
       {% endfor %}
     </ul>

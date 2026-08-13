@@ -1,0 +1,115 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+  <h1 class="page-heading">Gallery</h1>
+  <p class="page-intro">Work from the Brush Bunni community.</p>
+
+  {% if artists or events %}
+    {# Filters are links, not JS: a filtered gallery stays a shareable URL. #}
+    <nav class="gal-filters" aria-label="Filter artwork">
+      <a class="gal-pill {% if not active_artist and not active_event %}active{% endif %}"
+         href="{% url 'gallery' %}">All</a>
+
+      {% for artist in artists %}
+        <a class="gal-pill {% if active_artist == artist.slug %}active{% endif %}"
+           href="?artist={{ artist.slug }}">{{ artist.name }}</a>
+      {% endfor %}
+
+      {% for event in events %}
+        <a class="gal-pill gal-pill--event {% if active_event == event.slug %}active{% endif %}"
+           href="?event={{ event.slug }}">{{ event.display_name|default:event.title }}</a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+
+  {% if artworks %}
+    <ul class="gal-grid">
+      {% for art in artworks %}
+        <li class="gal-item">
+          <button type="button" class="gal-thumb"
+                  data-full="{{ art.image.url }}"
+                  data-title="{{ art.title }}"
+                  data-credit="{{ art.credit }}">
+            <img src="{{ art.image.url }}" alt="{{ art.title }} by {{ art.credit }}"
+                 loading="lazy">
+          </button>
+
+          <div class="gal-meta">
+            <strong class="gal-title">{{ art.title }}</strong>
+            {% if art.artist %}
+              <a class="gal-credit" href="{{ art.artist.get_absolute_url }}">{{ art.artist.name }}</a>
+            {% else %}
+              <span class="gal-credit gal-credit--plain">{{ art.credit }}</span>
+            {% endif %}
+            {% if art.event %}
+              <a class="gal-event" href="{{ art.event.get_absolute_url }}">
+                {{ art.event.display_name|default:art.event.title }}
+              </a>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="gal-empty">
+      {% if active_artist or active_event %}
+        Nothing here yet — <a href="{% url 'gallery' %}">see all artwork</a>.
+      {% else %}
+        No artwork yet. Check back soon!
+      {% endif %}
+    </p>
+  {% endif %}
+
+  {# Same lightbox contract as the event detail page. #}
+  <div class="ev-lightbox" id="galLightbox" hidden>
+    <button class="ev-lb-close" id="galLbClose" aria-label="Close">&times;</button>
+    <button class="ev-lb-nav" id="galLbPrev" aria-label="Previous">&lsaquo;</button>
+    <figure class="ev-lb-figure">
+      <img id="galLbImg" src="" alt="">
+      <figcaption id="galLbCaption"></figcaption>
+    </figure>
+    <button class="ev-lb-nav" id="galLbNext" aria-label="Next">&rsaquo;</button>
+  </div>
+
+  <script>
+  (function () {
+    const thumbs = Array.from(document.querySelectorAll('.gal-thumb'));
+    if (!thumbs.length) return;
+
+    const box = document.getElementById('galLightbox');
+    const img = document.getElementById('galLbImg');
+    const caption = document.getElementById('galLbCaption');
+    let index = 0;
+
+    function show(i) {
+      index = (i + thumbs.length) % thumbs.length;
+      const t = thumbs[index];
+      img.src = t.dataset.full;
+      img.alt = t.dataset.title;
+      caption.textContent = `${t.dataset.title} — ${t.dataset.credit}`;
+      box.hidden = false;
+    }
+
+    function close() {
+      box.hidden = true;
+      img.src = '';           // stop a large image decoding behind the overlay
+      thumbs[index].focus();  // return focus where the user left it
+    }
+
+    thumbs.forEach((t, i) => t.addEventListener('click', () => show(i)));
+    document.getElementById('galLbClose').addEventListener('click', close);
+    document.getElementById('galLbPrev').addEventListener('click', () => show(index - 1));
+    document.getElementById('galLbNext').addEventListener('click', () => show(index + 1));
+
+    // Clicking the backdrop closes; clicking the image itself must not.
+    box.addEventListener('click', (e) => { if (e.target === box) close(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+  })();
+  </script>
+{% endblock %}

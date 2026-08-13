@@ -126,9 +126,9 @@
     .event-tabs-container {
         display: flex;
         align-items: stretch;
-        height: 46px;
+        height: 34px;
         width: max-content;
-        padding: 0 12px;
+        padding: 0 10px;
     }
 
     /* Tabs sit as plain text directly on the shared gray bar; only the
@@ -144,10 +144,10 @@
         background: transparent;
         color: rgba(255, 255, 255, 0.5);
         border: none;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.02em;
-        padding: 0 20px;
+        padding: 0 16px;
         cursor: pointer;
         transition: color 0.2s ease;
     }
@@ -160,8 +160,8 @@
         background: #f2efe9;
         color: #232323;
         border-radius: 999px 0 0 999px;
-        padding: 0 30px 0 22px;
-        margin-right: 23px;
+        padding: 0 22px 0 16px;
+        margin-right: 15px;
         z-index: 1;
     }
 
@@ -172,9 +172,9 @@
         left: 100%;
         width: 0;
         height: 0;
-        border-top: 23px solid transparent;
-        border-bottom: 23px solid transparent;
-        border-left: 18px solid #f2efe9;
+        border-top: 17px solid transparent;
+        border-bottom: 17px solid transparent;
+        border-left: 13px solid #f2efe9;
     }
 
     /* ----- Photo carousel: three equal photos in a filmstrip, paginated one
@@ -428,10 +428,8 @@
             gap: 18px;
             padding: 24px 20px;
         }
-        .event-tabs-container { height: 40px; }
-        .event-tab { font-size: 12.5px; padding: 0 16px; }
-        .event-tab.active { padding: 0 24px 0 18px; margin-right: 20px; }
-        .event-tab.active::after { border-top-width: 20px; border-bottom-width: 20px; border-left-width: 16px; }
+        .event-tab { font-size: 11.5px; padding: 0 13px; }
+        .event-tab.active { padding: 0 18px 0 13px; }
     }
 
     @media (max-width: 480px) {

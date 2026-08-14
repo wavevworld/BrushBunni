@@ -34,6 +34,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
   <link href="{% static 'blog/style.css' %}" rel="stylesheet">
 
+  {% comment %}
+    Marks the page as scripted before anything renders, so the stylesheet can
+    hide the content box until it has been positioned. Without the class the
+    box is never hidden, which keeps the site usable with JavaScript off.
+  {% endcomment %}
+  <script>document.documentElement.classList.add('js');</script>
+
 {% block extra_css %}{% endblock %}
 </head>
 
@@ -116,6 +123,15 @@
     });
   })();
 
+  {% comment %}
+    Everything below is wrapped in an IIFE. It used to declare its names at
+    global scope, where they shared a namespace with each page's own inline
+    script — `let resizeTimer` here collided with the identical declaration in
+    events.html. A duplicate `let` is a parse-time SyntaxError, so the whole
+    block never ran, the content box never got .is-placed, and the Events page
+    rendered blank. Page scripts can now declare whatever they like.
+  {% endcomment %}
+  (function () {
   // Custom scrollbar functionality
   function initCustomScrollbar() {
     const contentBox = document.querySelector(".content-box");
@@ -163,28 +179,107 @@
     updateScrollbar();
   }
 
-  window.addEventListener("load", () => {
-    initCustomScrollbar();
-    
+  // Line the content box up with the active menu link.
+  //
+  // This used to run on window.load — after every image had decoded — with a
+  // 0.25s transition on the box, so each page visibly lurched down from 60px
+  // to its final offset (547px on Members). It now runs while the page is
+  // still parsing, so the box paints in the right place and never moves.
+  function positionContentBox() {
     const activeLink = document.querySelector(".nav-link.active");
     const contentBox = document.querySelector(".content-box");
+    if (!activeLink || !contentBox) return;
 
-    if (activeLink && contentBox) {
-      const linkRect = activeLink.getBoundingClientRect();
-      const scrollY = window.scrollY || window.pageYOffset;
-      const boxHeight = contentBox.offsetHeight;
-      const viewportHeight = window.innerHeight;
+    const linkRect = activeLink.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset;
+    const boxHeight = contentBox.offsetHeight;
+    const viewportHeight = window.innerHeight;
 
-      const centeredOffset = linkRect.top + linkRect.height / 2 - boxHeight / 2 + scrollY;
-      const tooTall = boxHeight > viewportHeight * 0.6;
-      const topLimit = 100;
-      const margin = 20;
-      const maxOffset = Math.max(margin, viewportHeight - boxHeight - margin);
-      const finalOffset = tooTall ? topLimit : Math.min(Math.max(centeredOffset, margin), maxOffset);
+    const centeredOffset = linkRect.top + linkRect.height / 2 - boxHeight / 2 + scrollY;
+    const tooTall = boxHeight > viewportHeight * 0.6;
+    const topLimit = 100;
+    const margin = 20;
+    const maxOffset = Math.max(margin, viewportHeight - boxHeight - margin);
+    const finalOffset = tooTall ? topLimit : Math.min(Math.max(centeredOffset, margin), maxOffset);
 
-      contentBox.style.setProperty('--content-offset', `${finalOffset}px`);
+    // Suppress the transition around the write, then force a reflow before
+    // restoring it: a correction after images load must not animate either.
+    contentBox.classList.add("is-positioning");
+    contentBox.style.setProperty('--content-offset', `${finalOffset}px`);
+    void contentBox.offsetHeight;
+    contentBox.classList.remove("is-positioning");
+  }
+
+  // Reveals the box, which the stylesheet hides until it has been placed.
+  // Called from a finally block and again on load: if positioning ever throws,
+  // the page must still be readable rather than invisible.
+  function revealContentBox() {
+    const contentBox = document.querySelector(".content-box");
+    if (contentBox) contentBox.classList.add("is-placed");
+  }
+
+  // Keep the current page visible in the menu. On short screens the menu
+  // scrolls, and picking an item near the bottom (Members, Contact us) left
+  // the highlighted link outside the visible strip — you could not tell which
+  // page you were on.
+  function revealActiveNavLink() {
+    // Desktop only. On a phone the menu is a drawer the reader just opened by
+    // hand, and scrolling it to the active link pushed the logo off the top
+    // and clipped the first item — it should open at the top like any menu.
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+
+    const activeLink = document.querySelector(".nav-link.active");
+    if (!activeLink) return;
+    const scroller = activeLink.closest(".sidebar > div");
+    if (!scroller || scroller.scrollHeight <= scroller.clientHeight) return;
+
+    const linkRect = activeLink.getBoundingClientRect();
+    const scrollerRect = scroller.getBoundingClientRect();
+    const pad = 8;
+
+    // Move the minimum needed to bring the link into view. Centring it (the
+    // first attempt) scrolled the menu even when the link was only a little
+    // off, so tapping Events or anything above it visibly shunted the whole
+    // menu — the opposite of the calm this was meant to add.
+    let delta = 0;
+    if (linkRect.top < scrollerRect.top + pad) {
+      delta = linkRect.top - scrollerRect.top - pad;
+    } else if (linkRect.bottom > scrollerRect.bottom - pad) {
+      delta = linkRect.bottom - scrollerRect.bottom + pad;
     }
+    if (delta) scroller.scrollTop += delta;
+  }
+
+  // Order matters: revealing the link scrolls the menu, which moves the link,
+  // which changes where the box should sit. Settle the menu first or the box
+  // gets placed against a position the link is about to leave.
+  function layoutSidebarAndBox() {
+    try {
+      revealActiveNavLink();
+      positionContentBox();
+    } finally {
+      revealContentBox();
+    }
+  }
+
+  // Run now, not on load: the DOM above this script is already parsed and
+  // styled, so the box is placed before the first paint.
+  layoutSidebarAndBox();
+
+  window.addEventListener("load", () => {
+    initCustomScrollbar();
+    // Images finishing can change the box height; re-place it silently.
+    layoutSidebarAndBox();
   });
+
+  // The clamp depends on viewport height, so it goes stale when the window
+  // is resized. This was never recalculated before.
+  let layoutResizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(layoutResizeTimer);
+    layoutResizeTimer = setTimeout(layoutSidebarAndBox, 120);
+  });
+  })();
   </script>
 
 

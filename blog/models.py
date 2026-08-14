@@ -1,3 +1,4 @@
+import re
 from io import BytesIO
 
 from django.db import models
@@ -116,17 +117,43 @@ class Event(models.Model):
     def status(self):
         return 'upcoming' if self.is_upcoming else 'past'
     
+    # Which code prefix belongs to which public series name. The prefix is
+    # checked as well as the type because the data is not always consistent —
+    # THUNG1 is stored as event_type 'bb_festa', and naming it from the type
+    # alone would publish it as "BB FESTA #1", both wrong and a duplicate of
+    # the real BBFESTA-1.
+    SERIES = [
+        ('BBFESTA', 'BB FESTA'),
+        ('THUNG', 'THUNDER GATHERERS'),
+        ('THUNDER', 'THUNDER GATHERERS'),
+    ]
+
     @property
     def display_name(self):
-        if self.event_type == 'bb_festa':
-            if '-' in self.code:
-                parts = self.code.split('-')
-                return f"BB FESTA #{parts[-1]}"
-        elif self.event_type == 'thunder':
-            if '-' in self.code:
-                parts = self.code.split('-')
-                return f"THUNDER GATHERERS #{parts[-1]}"
-        return self.title
+        """The name a visitor should see.
+
+        Codes like WACHAJ2 are internal identifiers, but they were reaching the
+        page whenever `title` had never been filled in — the upcoming-events
+        card was publishing a database key. A real title now wins, and a code
+        with no title behind it is at least made readable.
+        """
+        code = (self.code or '').strip()
+        title = (self.title or '').strip()
+
+        squashed = code.replace('-', '').replace('_', '').upper()
+        for prefix, name in self.SERIES:
+            if squashed.startswith(prefix):
+                number = squashed[len(prefix):]
+                return f"{name} #{number}" if number.isdigit() else name
+
+        if title and title.upper() != code.upper():
+            return title
+
+        # No usable title: turn SOME-CODE2 into "Some Code 2" rather than
+        # shouting an identifier at the reader.
+        words = re.sub(r'[-_]+', ' ', code)
+        words = re.sub(r'(?<=[A-Za-z])(?=\d)', ' ', words)
+        return words.title() or code
 
 
 class EventPhoto(models.Model):

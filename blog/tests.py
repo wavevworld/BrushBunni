@@ -168,15 +168,33 @@ class GalleryTests(TestCase):
             title='Guest piece', artist_name='Visiting Artist',
             image='gallery/guest.jpg')
 
-    def test_gallery_page_lists_visible_artwork(self):
+    def test_landing_page_shows_one_folder_per_artist(self):
+        """The gallery opens on artists, not on a wall of every piece."""
         response = self.client.get(reverse('gallery'))
-        self.assertContains(response, 'Red Oni')
-        self.assertContains(response, 'Guest piece')
+        self.assertTrue(response.context['browsing_folders'])
+        names = [f['name'] for f in response.context['folders']]
+        self.assertEqual(sorted(names), ['Kay Tang', 'Visiting Artist'])
+        self.assertContains(response, 'Kay Tang')
+        self.assertContains(response, 'Visiting Artist')
 
-    def test_hidden_artwork_is_not_listed(self):
+    def test_opening_a_member_folder_lists_their_work(self):
+        response = self.client.get(reverse('gallery'), {'artist': self.artist.slug})
+        self.assertFalse(response.context['browsing_folders'])
+        self.assertContains(response, 'Red Oni')
+        self.assertNotContains(response, 'Guest piece')
+
+    def test_opening_a_guest_folder_uses_the_name(self):
+        """A guest artist has no Member row, so no slug to open them by."""
+        response = self.client.get(reverse('gallery'), {'credit': 'Visiting Artist'})
+        self.assertContains(response, 'Guest piece')
+        self.assertNotContains(response, 'Red Oni')
+
+    def test_hidden_artwork_removes_its_folder(self):
         self.piece.is_visible = False
         self.piece.save()
-        self.assertNotContains(self.client.get(reverse('gallery')), 'Red Oni')
+        response = self.client.get(reverse('gallery'))
+        self.assertEqual([f['name'] for f in response.context['folders']],
+                         ['Visiting Artist'])
 
     def test_filter_by_artist(self):
         response = self.client.get(reverse('gallery'), {'artist': self.artist.slug})
@@ -235,3 +253,73 @@ class MemberDetailTests(TestCase):
         response = self.client.get(reverse('members'))
         person = response.context['members'][0]
         self.assertEqual(person.artwork_count, 1)
+
+
+class GalleryAdminBulkUploadTests(TestCase):
+    """The bulk upload is the main way artwork will be added, so it is tested."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from django.contrib.auth.models import User
+        cls.staff = User.objects.create_superuser('curator', 'c@e.com', 'pw')
+        cls.artist = Member.objects.create(name='Kay Tang', role='artist')
+
+    def setUp(self):
+        self.client.force_login(self.staff)
+
+    @staticmethod
+    def _image(name='piece.png'):
+        """A real 1x1 PNG — ImageField rejects arbitrary bytes."""
+        from io import BytesIO
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        buf = BytesIO()
+        Image.new('RGB', (1, 1), 'red').save(buf, format='PNG')
+        return SimpleUploadedFile(name, buf.getvalue(), content_type='image/png')
+
+    def test_uploads_one_artwork_per_file(self):
+        response = self.client.post('/admin/blog/gallery/bulk-upload/', {
+            'images': [self._image('one.png'), self._image('two.png')],
+            'artist': self.artist.pk,
+            'is_visible': 'on',
+        })
+        self.assertRedirects(response, '/admin/blog/gallery/')
+        self.assertEqual(Gallery.objects.count(), 2)
+        self.assertEqual(
+            sorted(Gallery.objects.values_list('title', flat=True)),
+            ['one', 'two'])
+        self.assertTrue(all(a.artist == self.artist for a in Gallery.objects.all()))
+
+    def test_credit_is_required(self):
+        """Neither a member nor a typed name means the piece is uncreditable."""
+        response = self.client.post('/admin/blog/gallery/bulk-upload/', {
+            'images': [self._image()],
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Gallery.objects.count(), 0)
+        self.assertContains(response, 'Give a credit')
+
+    def test_guest_artist_name_is_accepted(self):
+        self.client.post('/admin/blog/gallery/bulk-upload/', {
+            'images': [self._image()],
+            'artist_name': 'Visiting Artist',
+        })
+        art = Gallery.objects.get()
+        self.assertIsNone(art.artist)
+        self.assertEqual(art.credit, 'Visiting Artist')
+
+    def test_can_upload_hidden_for_review(self):
+        self.client.post('/admin/blog/gallery/bulk-upload/', {
+            'images': [self._image()],
+            'artist_name': 'Someone',
+        })
+        self.assertFalse(Gallery.objects.get().is_visible)
+
+    def test_uploads_land_at_the_end_of_the_order(self):
+        Gallery.objects.create(title='existing', artist_name='X',
+                               image='gallery/x.jpg', order=50)
+        self.client.post('/admin/blog/gallery/bulk-upload/', {
+            'images': [self._image()],
+            'artist_name': 'Someone',
+        })
+        self.assertGreater(Gallery.objects.get(title='piece').order, 50)

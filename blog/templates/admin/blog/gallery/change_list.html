@@ -1,0 +1,15 @@
+{% extends "admin/change_list.html" %}
+
+{% comment %}
+  Adds an "Upload artwork" button next to the stock "Add artwork" one.
+  Without a link here the bulk-upload page exists but nobody would find it.
+{% endcomment %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:blog_gallery_bulk_upload' %}" class="addlink">
+      Upload several
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

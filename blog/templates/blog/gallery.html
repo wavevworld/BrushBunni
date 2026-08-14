@@ -1,8 +1,16 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
-  <h1 class="page-heading">Gallery</h1>
-  <p class="page-intro">Work from the Brush Bunni community.</p>
+  {% if browsing_folders %}
+    <h1 class="page-heading">Gallery</h1>
+    <p class="page-intro">Work from the Brush Bunni community — pick an artist.</p>
+  {% else %}
+    <a class="mem-back" href="{% url 'gallery' %}">&larr; All artists</a>
+    <h1 class="page-heading">{{ open_folder|default:"Gallery" }}</h1>
+    <p class="page-intro">
+      {{ artwork_count }} piece{{ artwork_count|pluralize }}
+    </p>
+  {% endif %}
 
   {% if artists or events %}
     {# Filters are links, not JS: a filtered gallery stays a shareable URL. #}
@@ -22,34 +30,81 @@
     </nav>
   {% endif %}
 
-  {% if artworks %}
-    <ul class="gal-grid">
-      {% for art in artworks %}
-        <li class="gal-item">
-          <button type="button" class="gal-thumb"
-                  data-full="{{ art.image.url }}"
-                  data-title="{{ art.title }}"
-                  data-credit="{{ art.credit }}">
-            <img src="{{ art.image.url }}" alt="{{ art.title }} by {{ art.credit }}"
-                 loading="lazy">
-          </button>
+  {% if browsing_folders %}
+    {% if folders %}
+      <ul class="gal-folders">
+        {% for folder in folders %}
+          <li class="gal-folder">
+            <a class="gal-folder-link"
+               href="?{% if folder.artist %}artist={{ folder.artist.slug }}{% else %}credit={{ folder.name|urlencode }}{% endif %}">
+              <span class="gal-folder-cover">
+                <img src="{{ folder.cover.image.url }}" alt="" loading="lazy">
+              </span>
+              <span class="gal-folder-meta">
+                <strong class="gal-folder-name">{{ folder.name }}</strong>
+                <span class="gal-folder-count">
+                  {{ folder.count }} piece{{ folder.count|pluralize }}
+                </span>
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="gal-empty">No artwork yet. Check back soon!</p>
+    {% endif %}
 
-          <div class="gal-meta">
-            <strong class="gal-title">{{ art.title }}</strong>
-            {% if art.artist %}
-              <a class="gal-credit" href="{{ art.artist.get_absolute_url }}">{{ art.artist.name }}</a>
+  {% elif groups %}
+    {% for group in groups %}
+      <section class="gal-group">
+        {% comment %}
+          Inside an open folder the page heading is already the artist's name,
+          so a second one would just repeat it. Only label the sections when
+          more than one artist is on screen (an event filter can do that).
+        {% endcomment %}
+        {% if groups|length > 1 %}
+          <h2 class="gal-group-name">
+            {% if group.artist %}
+              <a href="{{ group.artist.get_absolute_url }}">{{ group.name }}</a>
             {% else %}
-              <span class="gal-credit gal-credit--plain">{{ art.credit }}</span>
+              {{ group.name }}
             {% endif %}
-            {% if art.event %}
-              <a class="gal-event" href="{{ art.event.get_absolute_url }}">
-                {{ art.event.display_name|default:art.event.title }}
-              </a>
-            {% endif %}
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
+            <span class="ev-count">{{ group.items|length }}</span>
+          </h2>
+        {% elif group.artist %}
+          <p class="gal-group-profile">
+            <a href="{{ group.artist.get_absolute_url }}">View {{ group.name }}'s profile &rarr;</a>
+          </p>
+        {% endif %}
+
+        <ul class="gal-grid">
+          {% for art in group.items %}
+            <li class="gal-item">
+              <button type="button" class="gal-thumb"
+                      data-full="{{ art.image.url }}"
+                      data-title="{{ art.title }}"
+                      data-credit="{{ art.credit }}">
+                <img src="{{ art.image.url }}" alt="{{ art.title }} by {{ art.credit }}"
+                     loading="lazy">
+              </button>
+
+              {% comment %}
+                The artist is the section heading, so each card only needs the
+                piece itself and where it was shown.
+              {% endcomment %}
+              <div class="gal-meta">
+                <strong class="gal-title">{{ art.title }}</strong>
+                {% if art.event %}
+                  <a class="gal-event" href="{{ art.event.get_absolute_url }}">
+                    {{ art.event.display_name|default:art.event.title }}
+                  </a>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endfor %}
   {% else %}
     <p class="gal-empty">
       {% if active_artist or active_event %}

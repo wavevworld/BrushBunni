@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='blog' %}">Blog</a>
+    &rsaquo; <a href="{% url 'admin:blog_gallery_changelist' %}">Gallery</a>
+    &rsaquo; Upload artwork
+  </div>
+{% endblock %}
+
+{% block content %}
+  <div id="content-main">
+    <p style="margin-bottom:18px; color:#555; max-width:60ch;">
+      Pick several images at once. One artwork is created per file, all sharing
+      the credit and event you choose here — you can rename or reorder them
+      afterwards in the list.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <p class="errornote">{{ form.non_field_errors|join:" " }}</p>
+      {% endif %}
+
+      <fieldset class="module aligned">
+        {% for field in form %}
+          <div class="form-row{% if field.errors %} errors{% endif %}">
+            {{ field.errors }}
+            <div>
+              {{ field.label_tag }}
+              {{ field }}
+              {% if field.help_text %}
+                <div class="help">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </fieldset>
+
+      <div class="submit-row">
+        <input type="submit" value="Upload artwork" class="default">
+        <a href="{% url 'admin:blog_gallery_changelist' %}" class="closelink">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

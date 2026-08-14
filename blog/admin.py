@@ -12,7 +12,8 @@ from django.contrib import messages
 from django.db.models import Max
 from django import forms
 from django.http import JsonResponse
-from django.urls import path
+from django.shortcuts import redirect, render
+from django.urls import path, reverse
 
 from .models import (Event, EventPhoto, BBNote, ContactMessage, Gallery,
                      Member, PageContent)
@@ -577,8 +578,43 @@ class MemberAdmin(admin.ModelAdmin):
 # GALLERY
 # =============================================================================
 
+class BulkArtworkForm(forms.Form):
+    """Add a batch of artwork in one go.
+
+    A gallery is filled a dozen pieces at a time, and the stock admin makes
+    that a dozen separate form submissions. The credit and event usually apply
+    to the whole batch, so they are asked for once.
+    """
+
+    images = MultiFileField(
+        label="Artwork files",
+        help_text="Choose as many images as you like — one artwork is created "
+                  "per file.")
+    artist = forms.ModelChoiceField(
+        queryset=Member.objects.all(), required=False,
+        label="Artist (a member)",
+        help_text="Leave empty if the artist is not on the Members page.")
+    artist_name = forms.CharField(
+        max_length=120, required=False, label="…or type a name",
+        help_text="For a guest artist without a member profile.")
+    event = forms.ModelChoiceField(
+        queryset=Event.objects.filter(is_active=True), required=False,
+        label="Shown at (optional)")
+    is_visible = forms.BooleanField(
+        initial=True, required=False, label="Publish straight away",
+        help_text="Untick to upload them hidden and review before they go live.")
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get("artist") and not cleaned.get("artist_name"):
+            raise forms.ValidationError(
+                "Give a credit: pick a member, or type the artist's name.")
+        return cleaned
+
+
 @admin.register(Gallery)
 class GalleryAdmin(admin.ModelAdmin):
+    change_list_template = "admin/blog/gallery/change_list.html"
     list_display = ['art_thumb', 'title', 'credit_display', 'event',
                     'is_featured', 'is_visible', 'order']
     list_display_links = ['art_thumb', 'title']
@@ -620,6 +656,51 @@ class GalleryAdmin(admin.ModelAdmin):
         if not change and not obj.order:
             obj.order = (Gallery.objects.aggregate(m=Max('order'))['m'] or 0) + 10
         super().save_model(request, obj, form, change)
+
+    def get_urls(self):
+        return [
+            path('bulk-upload/', self.admin_site.admin_view(self.bulk_upload),
+                 name='blog_gallery_bulk_upload'),
+        ] + super().get_urls()
+
+    def bulk_upload(self, request):
+        form = BulkArtworkForm(request.POST or None, request.FILES or None)
+
+        if request.method == 'POST' and form.is_valid():
+            files = request.FILES.getlist('images')
+            if not files:
+                form.add_error('images', "Choose at least one image.")
+            else:
+                order = (Gallery.objects.aggregate(m=Max('order'))['m'] or 0)
+                created = 0
+                for upload in files:
+                    order += 10
+                    art = Gallery(
+                        # A filename is a better starting title than "Untitled";
+                        # she can rename in the list view afterwards.
+                        title=upload.name.rsplit('.', 1)[0][:200],
+                        artist=form.cleaned_data['artist'],
+                        artist_name=form.cleaned_data['artist_name'],
+                        event=form.cleaned_data['event'],
+                        is_visible=form.cleaned_data['is_visible'],
+                        order=order,
+                    )
+                    art.image = upload
+                    art.save()
+                    created += 1
+
+                messages.success(
+                    request,
+                    f"Added {created} artwork{'s' if created != 1 else ''}. "
+                    f"Rename or reorder them below.")
+                return redirect(reverse('admin:blog_gallery_changelist'))
+
+        return render(request, 'admin/blog/gallery/bulk_upload.html', {
+            **self.admin_site.each_context(request),
+            'form': form,
+            'opts': self.model._meta,
+            'title': "Upload artwork",
+        })
 
     class Media:
         css = {'all': ['admin/css/brushbunni.css']}

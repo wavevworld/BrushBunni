@@ -164,8 +164,15 @@ def gallery(request):
 
     artist_slug = request.GET.get('artist', '')
     event_slug = request.GET.get('event', '')
+    # Guest artists have no Member row and so no slug; they are opened by name.
+    credit_name = request.GET.get('credit', '')
+
+    all_visible = list(artworks)
+
     if artist_slug:
         artworks = artworks.filter(artist__slug=artist_slug)
+    if credit_name:
+        artworks = artworks.filter(artist__isnull=True, artist_name=credit_name)
     if event_slug:
         artworks = artworks.filter(event__slug=event_slug)
 
@@ -176,17 +183,70 @@ def gallery(request):
     events = Event.objects.filter(
         is_active=True, artworks__is_visible=True).distinct()
 
+    # With nothing selected the page shows one folder per artist; opening a
+    # folder shows that artist's work. A single wall of every piece made it
+    # impossible to see whose work was whose.
+    browsing_folders = not (artist_slug or credit_name or event_slug)
+    folders = build_artist_folders(all_visible) if browsing_folders else []
+    open_folder = folder_title(artworks) if not browsing_folders else ""
+
     return render(request, 'blog/gallery.html', page_context(
         'gallery', 'blog/bg_community.jpg',
         "Gallery — Brush Bunni",
         "Artwork from the Brush Bunni community — paintings, illustrations "
         "and pieces shown at our events.",
-        artworks=artworks,
+        browsing_folders=browsing_folders,
+        folders=folders,
+        open_folder=open_folder,
+        groups=group_by_artist(artworks),
+        artwork_count=len(artworks),
         artists=artists,
         events=events,
         active_artist=artist_slug,
         active_event=event_slug,
     ))
+
+
+def build_artist_folders(artworks):
+    """One entry per artist: a cover image, a count and a way in."""
+    folders = {}
+    for art in artworks:
+        folder = folders.setdefault(art.credit, {
+            'name': art.credit, 'artist': None, 'cover': art, 'count': 0,
+        })
+        folder['count'] += 1
+        if art.artist and not folder['artist']:
+            folder['artist'] = art.artist
+        # Prefer a featured piece as the cover when there is one.
+        if art.is_featured and not folder['cover'].is_featured:
+            folder['cover'] = art
+    return sorted(folders.values(), key=lambda f: f['name'].lower())
+
+
+def folder_title(artworks):
+    """What to call the open folder, for the heading and the back link."""
+    first = artworks[0] if artworks else None
+    return first.credit if first else ""
+
+
+def group_by_artist(artworks):
+    """Collect the artwork under one heading per artist.
+
+    A flat wall of images makes it impossible to see whose work is whose, which
+    is the wrong emphasis for a community gallery — the artists are the point.
+    Sorting is by name so the page order does not shuffle when a piece is
+    added, and pieces keep their own order within an artist.
+    """
+    buckets = {}
+    for art in artworks:
+        key = art.credit
+        bucket = buckets.setdefault(key, {'name': key, 'artist': None, 'items': []})
+        bucket['items'].append(art)
+        # A Member link, if any one of the pieces has one.
+        if art.artist and not bucket['artist']:
+            bucket['artist'] = art.artist
+
+    return sorted(buckets.values(), key=lambda b: b['name'].lower())
 
 
 def contact(request):

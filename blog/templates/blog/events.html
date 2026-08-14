@@ -10,6 +10,23 @@
         <div class="previous-events-section">
             <h1 class="events-title">Previous Events</h1>
 
+            {% comment %}
+              On a phone the tab strip holds ~1500px of tabs behind a 300px
+              window, so all but the first two events are found by scrubbing
+              sideways. The picker shows the same list as one tap. Only one of
+              the two is ever visible — see the media query in style.css.
+            {% endcomment %}
+            {% if past_events %}
+                <label class="event-picker">
+                    <span class="event-picker-label">Event</span>
+                    <select id="eventPicker" onchange="selectEventById(this.value)">
+                        {% for event in past_events %}
+                            <option value="{{ event.id }}">{{ event.display_name }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            {% endif %}
+
             <!-- Event Tabs -->
             <div class="event-tabs-wrapper">
                 <button class="event-tabs-nav prev" onclick="scrollTabs(-1)" aria-label="Scroll tabs left">‹</button>
@@ -73,37 +90,84 @@
             </div>
         </div>
 
-        <!-- Upcoming Events Section -->
-        <div class="upcoming-section">
-            <div class="upcoming-header">Upcoming Events</div>
+        {% comment %}
+          Sits below the carousel, attached to the dark card, as in Yutaro's
+          mockup. When nothing is scheduled it collapses to a single line
+          instead of giving the loudest band on the page to an empty section —
+          which is what it did while it was advertising a past event.
+        {% endcomment %}
+        {% if upcoming_events %}
+            <div class="upcoming-section">
+                <div class="upcoming-header">Upcoming Events</div>
 
-            <div class="upcoming-content">
-                {% if upcoming_events %}
-                    {% for event in upcoming_events|slice:":3" %}
-                        <a href="{{ event.get_absolute_url }}" class="upcoming-card">
-                            <div class="upcoming-card-icon">
-                                <img src="{% static 'blog/logo.png' %}" alt="">
-                            </div>
-                            <div class="upcoming-card-details">
-                                <div class="upcoming-card-name">{{ event.display_name|default:event.title }}</div>
-                                <div class="upcoming-card-link">Learn More</div>
-                            </div>
-                        </a>
-                    {% endfor %}
-                {% else %}
-                    <p class="upcoming-empty">No upcoming events — check back soon.</p>
-                {% endif %}
+                <div class="upcoming-content">
+                    <ul class="uc-list">
+                        {% for event in upcoming_events %}
+                            <li class="uc-card">
+                                <time class="uc-date" datetime="{{ event.date|date:'Y-m-d' }}">
+                                    <span class="uc-month">{{ event.date|date:"M" }}</span>
+                                    <span class="uc-day">{{ event.date|date:"j" }}</span>
+                                    <span class="uc-year">{{ event.date|date:"Y" }}</span>
+                                </time>
+
+                                <div class="uc-body">
+                                    <a class="uc-name" href="{{ event.get_absolute_url }}">{{ event.display_name }}</a>
+
+                                    <p class="uc-meta">
+                                        {% if event.start_time %}<span>{{ event.start_time|time:"H:i" }}</span>{% endif %}
+                                        {% if event.is_online %}
+                                            <span>Online</span>
+                                        {% elif event.location %}
+                                            <span>{{ event.location }}</span>
+                                        {% endif %}
+                                        <span>{{ event.get_event_type_display }}</span>
+                                    </p>
+
+                                    {% if event.short_description %}
+                                        <p class="uc-desc">{{ event.short_description }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="uc-action">
+                                    {% if event.registration_url %}
+                                        <a class="btn btn--primary uc-signup" href="{{ event.registration_url }}"
+                                           target="_blank" rel="noopener">Sign up</a>
+                                        <a class="uc-details" href="{{ event.get_absolute_url }}">Details</a>
+                                    {% else %}
+                                        <a class="btn btn--ghost" href="{{ event.get_absolute_url }}">Details</a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-        </div>
+        {% else %}
+            <p class="upcoming-strip">
+                <span class="upcoming-strip-label">Nothing scheduled yet</span>
+                <span>New events are announced on <a
+                    href="https://discord.com/invite/YWnYE4EHk5" target="_blank"
+                    rel="noopener">our Discord</a>.</span>
+            </p>
+        {% endif %}
+
     </div>
 </div>
 
 <!-- Lightbox Modal -->
-<div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <span class="lightbox-close" onclick="closeLightbox()">×</span>
+<div id="lightbox" class="lightbox">
+    <button type="button" class="lightbox-close" onclick="closeLightbox()"
+            aria-label="Close">&times;</button>
+    <button type="button" class="lightbox-nav prev" id="lightboxPrev"
+            onclick="stepLightbox(-1)" aria-label="Previous photo">&lsaquo;</button>
+
     <div class="lightbox-content">
         <img id="lightboxImg" src="" alt="">
+        <p class="lightbox-counter" id="lightboxCounter"></p>
     </div>
+
+    <button type="button" class="lightbox-nav next" id="lightboxNext"
+            onclick="stepLightbox(1)" aria-label="Next photo">&rsaquo;</button>
 </div>
 
 <script>
@@ -124,16 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const tabs = document.querySelectorAll('.event-tab');
     tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            tabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            scrollTabIntoView(this);
-
-            currentEventId = this.getAttribute('data-event-id');
-            currentSlide = 0;
-            updateVisibleSlides();
-            updateCarousel();
-        });
+        tab.addEventListener('click', () => activateEventTab(tab));
     });
 
     const tabsScroll = document.getElementById('eventTabsScroll');
@@ -142,6 +197,29 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTabsNavState();
     }
 });
+
+// The one place an event gets switched. Both the desktop tab strip and the
+// mobile picker call this, so the two can never drift apart.
+function activateEventTab(tab) {
+    if (!tab) return;
+    document.querySelectorAll('.event-tab')
+        .forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    scrollTabIntoView(tab);
+
+    currentEventId = tab.getAttribute('data-event-id');
+    currentSlide = 0;
+    updateVisibleSlides();
+    updateCarousel();
+
+    // Keep the picker showing the same event when a tab was used instead.
+    const picker = document.getElementById('eventPicker');
+    if (picker && picker.value !== currentEventId) picker.value = currentEventId;
+}
+
+function selectEventById(eventId) {
+    activateEventTab(document.querySelector(`.event-tab[data-event-id="${eventId}"]`));
+}
 
 // Scrolls the tabs strip by one screenful in either direction.
 function scrollTabs(direction) {
@@ -183,6 +261,11 @@ function updateVisibleSlides() {
     allSlides.forEach(slide => {
         const match = slide.getAttribute('data-event-id') === currentEventId;
         slide.style.display = match ? '' : 'none';
+        // Clear the centre marker on every slide, not just the visible ones.
+        // updateCarousel() only walks the visible set, so a slide from the
+        // previously-selected event kept the class while hidden — and any
+        // lookup for ".is-centre" then found that stale one first.
+        slide.classList.remove('is-centre', 'active');
         if (match) visibleSlides.push(slide);
     });
     currentSlide = 0;
@@ -220,8 +303,13 @@ function updateCarousel() {
 
     if (currentSlide > maxIndex) currentSlide = maxIndex;
 
-    visibleSlides.forEach(slide => {
+    // Mark the slide sitting in the middle of the strip. The reference design
+    // keeps the centre photo full-strength and fades its neighbours, so the
+    // eye lands on one picture instead of three competing ones.
+    const centreOffset = Math.floor(perView / 2);
+    visibleSlides.forEach((slide, index) => {
         slide.style.flex = `0 0 ${slideWidth}px`;
+        slide.classList.toggle('is-centre', index === currentSlide + centreOffset);
     });
 
     track.style.transform = `translateX(${-currentSlide * slideWidth}px)`;
@@ -241,14 +329,50 @@ window.addEventListener('resize', () => {
     }, 200);
 });
 
-// Lightbox
+// ----- Lightbox -----
+// Holds the photos of the event currently selected in the tab strip, so the
+// arrows walk that event's set rather than every photo on the page.
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+
+function isLightboxOpen() {
+    return document.getElementById('lightbox').style.display === 'block';
+}
+
 function openLightbox(imageSrc) {
     if (!imageSrc) return;
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
-    lightboxImg.src = imageSrc;
-    lightbox.style.display = 'block';
+
+    lightboxPhotos = visibleSlides
+        .map(slide => slide.querySelector('img'))
+        .filter(Boolean)
+        .map(img => img.src);
+
+    const found = lightboxPhotos.indexOf(imageSrc);
+    lightboxIndex = found === -1 ? 0 : found;
+    if (!lightboxPhotos.length) lightboxPhotos = [imageSrc];
+
+    document.getElementById('lightbox').style.display = 'block';
     document.body.style.overflow = 'hidden';
+    renderLightbox();
+}
+
+// Wraps around, so the arrows never dead-end at the first or last photo.
+function stepLightbox(direction) {
+    if (lightboxPhotos.length < 2) return;
+    lightboxIndex = (lightboxIndex + direction + lightboxPhotos.length)
+                    % lightboxPhotos.length;
+    renderLightbox();
+}
+
+function renderLightbox() {
+    const total = lightboxPhotos.length;
+    document.getElementById('lightboxImg').src = lightboxPhotos[lightboxIndex];
+    document.getElementById('lightboxCounter').textContent =
+        total > 1 ? `${lightboxIndex + 1} / ${total}` : '';
+    // A single photo has nowhere to go, so the arrows are removed rather than
+    // left sitting there doing nothing.
+    document.getElementById('lightboxPrev').hidden = total < 2;
+    document.getElementById('lightboxNext').hidden = total < 2;
 }
 
 function closeLightbox() {
@@ -256,7 +380,21 @@ function closeLightbox() {
     document.body.style.overflow = 'auto';
 }
 
+// Clicking the backdrop closes; clicking the photo or an arrow must not.
+document.getElementById('lightbox').addEventListener('click', function (e) {
+    if (e.target === this) closeLightbox();
+});
+
 document.addEventListener('keydown', function(e) {
+    // While the lightbox is open the arrows belong to it. They used to fall
+    // through to the carousel, so pressing an arrow scrolled the filmstrip
+    // behind the overlay while the photo on screen stayed put.
+    if (isLightboxOpen()) {
+        if (e.key === 'ArrowLeft') stepLightbox(-1);
+        if (e.key === 'ArrowRight') stepLightbox(1);
+        if (e.key === 'Escape') closeLightbox();
+        return;
+    }
     if (e.key === 'ArrowLeft') changeSlide(-1);
     if (e.key === 'ArrowRight') changeSlide(1);
     if (e.key === 'Escape') closeLightbox();

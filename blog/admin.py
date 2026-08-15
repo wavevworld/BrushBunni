@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group, User
 from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib import messages
-from django.db.models import Max
+from django.db.models import Max, Q
 from django import forms
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -705,3 +705,100 @@ class GalleryAdmin(admin.ModelAdmin):
     class Media:
         css = {'all': ['admin/css/brushbunni.css']}
         js = ['admin/js/brushbunni.js']
+
+
+# =============================================================================
+# DASHBOARD
+# =============================================================================
+#
+# The stock admin landing page is a list of model names and an empty "Recent
+# actions" box — it tells the person running the site nothing about its state.
+# These two helpers feed the counts and the to-do list in
+# templates/admin/index.html.
+
+def _dashboard_stats():
+    unread = ContactMessage.objects.filter(is_read=False).count()
+    return [
+        {'label': 'Artworks', 'count': Gallery.objects.filter(is_visible=True).count(),
+         'url': reverse('admin:blog_gallery_changelist'), 'colour': '#7b6cf6'},
+        {'label': 'Events', 'count': Event.objects.filter(is_active=True).count(),
+         'url': reverse('admin:blog_event_changelist'), 'colour': '#2fa36b'},
+        {'label': 'Members', 'count': Member.objects.filter(is_visible=True).count(),
+         'url': reverse('admin:blog_member_changelist'), 'colour': '#d8892c'},
+        {'label': 'Unread messages', 'count': unread,
+         'url': reverse('admin:blog_contactmessage_changelist'),
+         # Red only when there is actually something waiting.
+         'colour': '#c0392b' if unread else '#6b7280'},
+    ]
+
+
+def _dashboard_todo():
+    """Only real, actionable gaps — an always-full list would be ignored."""
+    todo = []
+
+    if not Member.objects.filter(is_visible=True).exists():
+        todo.append({
+            'text': 'Add member profiles',
+            'hint': 'The Gallery credits artists by name only until each has a '
+                    'profile — then every credit links to their page.',
+            'url': reverse('admin:blog_member_add'),
+        })
+
+    unread = ContactMessage.objects.filter(is_read=False).count()
+    if unread:
+        todo.append({
+            'text': f'{unread} unread contact message{"s" if unread > 1 else ""}',
+            'hint': 'Sent through the contact form on the website.',
+            'url': reverse('admin:blog_contactmessage_changelist'),
+        })
+
+    bare = Event.objects.filter(is_active=True).filter(
+        Q(description='') | Q(location='')).count()
+    if bare:
+        todo.append({
+            'text': f'{bare} event{"s" if bare > 1 else ""} missing a venue or description',
+            'hint': 'These show up on the site with blank details.',
+            'url': reverse('admin:blog_event_changelist'),
+        })
+
+    unlinked = Gallery.objects.filter(is_visible=True, artist__isnull=True)\
+                              .exclude(artist_name='').count()
+    if unlinked:
+        todo.append({
+            'text': f'{unlinked} artwork{"s" if unlinked > 1 else ""} credited by name only',
+            'hint': 'Pick the artist on each piece once their member profile exists.',
+            'url': reverse('admin:blog_gallery_changelist'),
+        })
+
+    empty_pages = PageContent.objects.filter(body='').count()
+    if empty_pages:
+        plural = empty_pages > 1
+        todo.append({
+            'text': f'{empty_pages} page{"s" if plural else ""} '
+                    f'{"have" if plural else "has"} no text yet',
+            'hint': 'About Us, Community, Members and Project Bunni are empty '
+                    'until you write something here.',
+            'url': reverse('admin:blog_pagecontent_changelist'),
+        })
+
+    return todo
+
+
+# Wrap the existing index view rather than subclassing AdminSite, which would
+# mean rewiring urls.py for a purely cosmetic change.
+_django_admin_index = admin.site.index
+
+
+def _brushbunni_index(request, extra_context=None):
+    context = dict(extra_context or {})
+    context['bb_stats'] = _dashboard_stats()
+    context['bb_todo'] = _dashboard_todo()
+    return _django_admin_index(request, context)
+
+
+admin.site.index = _brushbunni_index
+
+# Points the dashboard at our template. It has to be a different filename from
+# admin/index.html: a template cannot extend itself, and jazzmin's own
+# admin/index.html would win the lookup anyway.
+admin.site.index_template = 'admin/bb_dashboard.html'

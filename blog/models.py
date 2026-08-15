@@ -55,7 +55,10 @@ class Event(models.Model):
     ]
     
     code = models.CharField(max_length=50, unique=True, help_text="e.g., BBFESTA-1, BBFESTA-2")
-    slug = models.SlugField(max_length=80, unique=True, blank=True)
+    slug = models.SlugField(
+        max_length=80, unique=True, blank=True, verbose_name="Web address",
+        help_text="Filled in automatically from the name. This is the part "
+                  "that appears in the page's link.")
     title = models.CharField(max_length=200)
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default='bb_festa')
     description = models.TextField(blank=True)
@@ -81,8 +84,12 @@ class Event(models.Model):
         help_text="Sign-up link (e.g. Google Form) shown as a Register button")
     
     # Ordering
-    is_active = models.BooleanField(default=True)
-    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(
+        default=True, verbose_name="Show on the website",
+        help_text="Untick to hide this event without deleting it.")
+    order = models.PositiveIntegerField(
+        default=0, verbose_name="Position",
+        help_text="Lower numbers come first. Leave at 0 to sort by date.")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -161,8 +168,12 @@ class EventPhoto(models.Model):
     image = models.ImageField(upload_to='events/', 
                               help_text="Upload event photos (JPG, PNG)")
     caption = models.CharField(max_length=200, blank=True)
-    is_featured = models.BooleanField(default=False)
-    order = models.PositiveIntegerField(default=0)
+    is_featured = models.BooleanField(
+        default=False, verbose_name="Use as the main photo",
+        help_text="The large image at the top of the event's page.")
+    order = models.PositiveIntegerField(
+        default=0, verbose_name="Position",
+        help_text="Lower numbers come first.")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -325,9 +336,15 @@ class Member(models.Model):
     instagram_handle = models.CharField(
         max_length=100, blank=True, help_text="Without the @")
     discord_username = models.CharField(max_length=100, blank=True)
-    is_featured = models.BooleanField(default=False, help_text="Show first")
-    is_visible = models.BooleanField(default=True, help_text="Show on the website")
-    order = models.PositiveIntegerField(default=0)
+    is_featured = models.BooleanField(
+        default=False, verbose_name="Pin to the top",
+        help_text="Featured members appear before everyone else.")
+    is_visible = models.BooleanField(
+        default=True, verbose_name="Show on the website",
+        help_text="Untick to hide this person without deleting them.")
+    order = models.PositiveIntegerField(
+        default=0, verbose_name="Position",
+        help_text="Lower numbers come first, among members who are not pinned.")
     join_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -395,12 +412,21 @@ class Gallery(models.Model):
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True,
                               blank=True, related_name='artworks',
                               help_text="Optional: the event this was shown at")
-    tags = models.CharField(max_length=200, blank=True)
+    tags = models.CharField(
+        max_length=200, blank=True,
+        help_text="Optional keywords, separated by commas. Not shown on "
+                  "the website — they are for your own searching.")
 
-    is_featured = models.BooleanField(default=False, help_text="Show first")
-    is_visible = models.BooleanField(default=True, help_text="Show on the website")
+    is_featured = models.BooleanField(
+        default=False, verbose_name="Use as the folder cover",
+        help_text="This piece becomes the picture on the artist's folder "
+                  "in the Gallery.")
+    is_visible = models.BooleanField(
+        default=True, verbose_name="Show on the website",
+        help_text="Untick to hide this piece without deleting it.")
     order = models.PositiveIntegerField(
-        default=0, help_text="Lower numbers appear first")
+        default=0, verbose_name="Position",
+        help_text="Lower numbers come first within this artist's folder.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

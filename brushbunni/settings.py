@@ -198,16 +198,39 @@ JAZZMIN_SETTINGS = {
     "site_brand": "BrushBunni",
     "welcome_sign": "Welcome to BrushBunni Admin",
     "copyright": "BrushBunni Art Community",
-    "search_model": ["blog.Event"],
+    # No global search box. Jazzmin renders one per model listed here, so
+    # naming three put three boxes side by side in the header; naming one made
+    # it read "Search Events…" on every page including Gallery. Each list page
+    # has its own search, which is where people look anyway.
+    "search_model": [],
     "show_sidebar": True,
     "navigation_expanded": True,
     "hide_apps": [],
     "hide_models": [],
+
+    # Ordered by how often each is used, not alphabetically. Gallery and Events
+    # are the day-to-day work; Page texts and Contact messages are occasional.
+    "order_with_respect_to": [
+        "blog",
+        "blog.Gallery",
+        "blog.Event",
+        "blog.Member",
+        "blog.BBNote",
+        "blog.PageContent",
+        "blog.ContactMessage",
+        "auth",
+    ],
+
+    # Every entry gets a real icon; the default grey dot said nothing.
     "icons": {
+        "blog": "fas fa-paint-brush",
         "blog.Event": "fas fa-calendar-alt",
         "blog.EventPhoto": "fas fa-images",
         "blog.Gallery": "fas fa-palette",
-        "blog.Member": "fas fa-users",
+        "blog.Member": "fas fa-user-friends",
+        "blog.BBNote": "fas fa-newspaper",
+        "blog.PageContent": "fas fa-file-alt",
+        "blog.ContactMessage": "fas fa-envelope",
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
     },

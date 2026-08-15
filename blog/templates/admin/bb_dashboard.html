@@ -1,0 +1,47 @@
+{% extends "admin/index.html" %}
+
+{% comment %}
+  The stock dashboard is a list of model names beside an empty "Recent actions"
+  box — it says nothing about the state of the site or what needs doing. This
+  puts the numbers and the outstanding jobs first, then the normal model list.
+
+  Layout is deliberately plain flexbox with inline styles rather than the
+  admin's grid classes: dropped into jazzmin's own column layout, a .row of
+  .col-md-3 broke out of its container and the panel landed on top of the last
+  stat card.
+{% endcomment %}
+
+{% block content %}
+  <div style="display:flex; flex-wrap:wrap; gap:14px; margin:0 0 18px;">
+    {% for card in bb_stats %}
+      <a href="{{ card.url }}"
+         style="flex:1 1 160px; min-width:160px; text-decoration:none;
+                border-radius:6px; padding:16px 18px; color:#fff;
+                background:{{ card.colour }};">
+        <div style="font-size:2.1rem; font-weight:700; line-height:1;">{{ card.count }}</div>
+        <div style="margin-top:6px; opacity:0.92;">{{ card.label }}</div>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if bb_todo %}
+    <div class="card" style="margin:0 0 18px;">
+      <div class="card-header">
+        <h3 class="card-title" style="margin:0;">Needs your attention</h3>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for item in bb_todo %}
+          <li class="list-group-item">
+            <a href="{{ item.url }}"><strong>{{ item.text }}</strong></a>
+            {% if item.hint %}
+              <div class="text-muted" style="font-size:0.86em; margin-top:2px;">{{ item.hint }}</div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div style="clear:both;"></div>
+  {{ block.super }}
+{% endblock %}

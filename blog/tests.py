@@ -323,3 +323,21 @@ class GalleryAdminBulkUploadTests(TestCase):
             'artist_name': 'Someone',
         })
         self.assertGreater(Gallery.objects.get(title='piece').order, 50)
+
+
+class ContactEmailTests(TestCase):
+    """The sidebar shipped a hardcoded youremail@example.com for months."""
+
+    def test_no_placeholder_address_anywhere(self):
+        response = self.client.get(reverse('home'))
+        self.assertNotContains(response, 'example.com')
+
+    def test_icon_is_omitted_when_no_address_is_configured(self):
+        with self.settings(CONTACT_EMAIL=''):
+            response = self.client.get(reverse('home'))
+        self.assertNotContains(response, 'mailto:')
+
+    def test_configured_address_is_used(self):
+        with self.settings(CONTACT_EMAIL='hello@brushbunni.com'):
+            response = self.client.get(reverse('home'))
+        self.assertContains(response, 'mailto:hello@brushbunni.com')

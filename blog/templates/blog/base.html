@@ -81,9 +81,16 @@
       <a href="https://www.instagram.com/bb_brushbunni/" target="_blank">
         <img src="{% static 'blog/icons/instagram.svg' %}" alt="Instagram">
       </a>
-      <a href="mailto:youremail@example.com">
-        <img src="{% static 'blog/icons/gmail.svg' %}" alt="Email">
-      </a>
+      {% comment %}
+        Only rendered once CONTACT_EMAIL is configured. This carried a
+        hardcoded youremail@example.com for months — an icon that is absent is
+        better than one that mails a placeholder domain.
+      {% endcomment %}
+      {% if contact_email %}
+        <a href="mailto:{{ contact_email }}">
+          <img src="{% static 'blog/icons/gmail.svg' %}" alt="Email us">
+        </a>
+      {% endif %}
     </div>
   </div>
   <!-- Custom Scrollbar -->

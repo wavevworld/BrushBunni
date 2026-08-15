@@ -1,6 +1,7 @@
 # views.py — page views for the public site
 
 from django import forms
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import HttpResponse
@@ -48,6 +49,9 @@ def page_context(current_page, bg_image, title, description, **extra):
         'page_description': (content.meta_description if content and
                              content.meta_description else description),
         'content': content,
+        # Sidebar email link. Empty until the address is configured, and
+        # base.html omits the icon entirely rather than linking nowhere.
+        'contact_email': settings.CONTACT_EMAIL,
     }
     context.update(extra)
     return context

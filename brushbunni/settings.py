@@ -41,6 +41,12 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
     'https://brushbunni.com,https://www.brushbunni.com',
 ).split(',')
 
+# TODO(owner): set the real address, either here or as DJANGO_CONTACT_EMAIL on
+# the server. The sidebar carried a hardcoded `youremail@example.com` for
+# months; the default is deliberately empty so an unset address hides the email
+# icon rather than publishing a link to example.com.
+CONTACT_EMAIL = os.environ.get('DJANGO_CONTACT_EMAIL', '')
+
 
 # Application definition
 

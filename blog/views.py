@@ -57,12 +57,47 @@ def page_context(current_page, bg_image, title, description, **extra):
     return context
 
 
+DISCORD_INVITE = 'https://discord.com/invite/YWnYE4EHk5'
+
+
 def home(request):
+    """The landing page: who, where, and how to join, above the fold.
+
+    It previously carried a heading and one generic sentence, so a first-time
+    visitor learned neither the country nor what actually happens here.
+    """
+    today = timezone.localdate()
+    past_events = Event.objects.filter(is_active=True, date__lt=today)
+    latest_event = past_events.order_by('-date').first()
+
+    artworks = Gallery.objects.filter(is_visible=True)
+    artist_count = len({art.credit for art in artworks})
+
+    # Counted from the database rather than typed in, so they cannot go stale.
+    # TODO(owner): two more would help and cannot be derived — the year the
+    # community started, and how many people are in the Discord. Set
+    # FOUNDED_YEAR / DISCORD_MEMBERS in settings and they appear here; until
+    # then the row simply shows the three we can stand behind.
+    stats = [
+        {'value': past_events.count(), 'label': 'events held'},
+        {'value': artist_count, 'label': 'artists shown'},
+        {'value': artworks.count(), 'label': 'works in the gallery'},
+    ]
+    for value, label in ((getattr(settings, 'FOUNDED_YEAR', ''), 'founded'),
+                         (getattr(settings, 'DISCORD_MEMBERS', ''), 'in our Discord')):
+        if value:
+            stats.append({'value': value, 'label': label})
+
     return render(request, 'blog/home.html', page_context(
         'home', 'blog/bg_about.jpg',
-        "About Us — Brush Bunni",
-        "Brush Bunni is an art community where creativity meets community — "
-        "events, workshops and a place for illustrators and creators to meet.",
+        "Brush Bunni — art community in Japan",
+        "Brush Bunni is an art community in Japan for illustrators and "
+        "creators — meet-ups and workshops in Tokyo and Kyoto, and a gallery "
+        "of work by our members.",
+        stats=stats,
+        latest_event=latest_event,
+        artwork_count=artworks.count(),
+        discord_invite=DISCORD_INVITE,
     ))
 
 

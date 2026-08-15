@@ -1,5 +1,89 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block content %}
-  {% include 'blog/_page_content.html' with default_heading="About Us" default_intro="Welcome to Brush Bunni — where creativity meets community!" %}
+  {% comment %}
+    Text still comes from Page texts in the admin where it exists, so the
+    owner can rewrite the heading and opening line without a deploy. The
+    defaults below are the fallback, and they name the country and the cities
+    on purpose — the previous copy ("where creativity meets community") could
+    have belonged to any community anywhere.
+  {% endcomment %}
+  <h1 class="page-heading">{{ content.heading|default:"Brush Bunni" }}</h1>
+
+  <p class="home-lede">
+    {% if content.intro %}
+      {{ content.intro }}
+    {% else %}
+      An art community in Japan for illustrators, painters and creators —
+      meet-ups and workshops in Tokyo and Kyoto, and a gallery of work by
+      the people who come.
+    {% endif %}
+  </p>
+
+  {% if stats %}
+    <ul class="home-stats">
+      {% for stat in stats %}
+        <li class="home-stat">
+          <span class="home-stat-value">{{ stat.value }}</span>
+          <span class="home-stat-label">{{ stat.label }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <p class="home-actions">
+    <a class="btn btn--primary" href="{{ discord_invite }}"
+       target="_blank" rel="noopener">Join our Discord</a>
+    <a class="btn btn--ghost" href="{% url 'events' %}">See what we do</a>
+  </p>
+
+  {% if content.body %}
+    <div class="page-body">{{ content.body|linebreaks }}</div>
+  {% endif %}
+
+  <ul class="home-cards">
+    {% if latest_event %}
+      <li class="home-card">
+        <a href="{{ latest_event.get_absolute_url }}">
+          {% with photo=latest_event.photos.first %}
+            {% if photo %}
+              <span class="home-card-image">
+                <img src="{{ photo.image.url }}" alt="" loading="lazy">
+              </span>
+            {% endif %}
+          {% endwith %}
+          <span class="home-card-text">
+            <strong>Our last event</strong>
+            <span>{{ latest_event.display_name }}</span>
+            <small>{{ latest_event.date|date:"j F Y" }}{% if latest_event.location %} · {{ latest_event.location }}{% endif %}</small>
+          </span>
+        </a>
+      </li>
+    {% endif %}
+
+    <li class="home-card">
+      <a href="{% url 'gallery' %}">
+        <span class="home-card-text">
+          <strong>Gallery</strong>
+          <span>Work by our members</span>
+          <small>{{ artwork_count }} piece{{ artwork_count|pluralize }}</small>
+        </span>
+      </a>
+    </li>
+
+    <li class="home-card">
+      <a href="{% url 'project_bunni' %}">
+        <span class="home-card-text">
+          <strong>Project Bunni</strong>
+          <span>Coming soon</span>
+        </span>
+      </a>
+    </li>
+  </ul>
+
+  {% if content.cta_url and content.cta_label %}
+    <p><a class="page-cta" href="{{ content.cta_url }}" target="_blank"
+          rel="noopener">{{ content.cta_label }}</a></p>
+  {% endif %}
 {% endblock %}

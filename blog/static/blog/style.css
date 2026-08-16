@@ -2716,3 +2716,42 @@ body.menu-open .menu-toggle span:nth-child(3) {
   font-size: 0.83rem;
   color: var(--ink-500);
 }
+
+/* A second line under a menu label, for entries whose name does not say what
+   they contain. "BB Notes" is the community's own term and worth keeping, but
+   it needed to say that it is writing. */
+.nav-link--with-note {
+  line-height: 1.15;
+}
+
+.nav-note {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  opacity: 0.72;
+}
+
+/* The active link is a white bar with dark text, so the note has to darken
+   with it rather than staying pale. */
+.nav-link.active .nav-note {
+  opacity: 0.62;
+}
+
+/* The Project Bunni poster. A 648px square sitting flush left in a ~1150px
+   box left half the page blank, which read as a broken layout. Centred and
+   capped, the space around it is symmetric and deliberate. */
+.pb-poster {
+  margin: 0.5rem auto 0;
+  max-width: 520px;
+}
+
+.pb-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-md);
+}

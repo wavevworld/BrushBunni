@@ -64,6 +64,11 @@
 
     <li class="home-card">
       <a href="{% url 'gallery' %}">
+        {% if gallery_cover %}
+          <span class="home-card-image">
+            <img src="{{ gallery_cover.image.url }}" alt="" loading="lazy">
+          </span>
+        {% endif %}
         <span class="home-card-text">
           <strong>Gallery</strong>
           <span>Work by our members</span>
@@ -74,6 +79,9 @@
 
     <li class="home-card">
       <a href="{% url 'project_bunni' %}">
+        <span class="home-card-image">
+          <img src="{% static 'blog/PJBUNNI.jpg' %}" alt="" loading="lazy">
+        </span>
         <span class="home-card-text">
           <strong>Project Bunni</strong>
           <span>Coming soon</span>

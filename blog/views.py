@@ -114,6 +114,9 @@ def home(request):
         stats=stats,
         latest_event=latest_event,
         artwork_count=artworks.count(),
+        # Every card needs a picture or the row reads as two empty boxes beside
+        # a full one. The gallery borrows a featured piece as its cover.
+        gallery_cover=artworks.order_by('-is_featured', 'order').first(),
         discord_invite=DISCORD_INVITE,
     ))
 

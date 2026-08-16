@@ -5,10 +5,20 @@
   {% include 'blog/_page_content.html' with default_heading="Project Bunni" %}
 
   {% comment %}
-    The original poster stays as the fallback: it is the whole page today, and
-    it should keep showing until an image is uploaded from the admin.
+    The poster is a square image that was sitting flush left in a wide box,
+    leaving half the page blank — it read as a broken layout rather than a
+    deliberate one. Centred and capped, the whitespace is symmetric and the
+    page looks intentional even while it is waiting for its copy.
+
+    TODO(owner): this page still has no words. What Project Bunni is, who can
+    take part and how to apply are not written down anywhere — not in Discord,
+    not on note.com. Once that text exists it goes in Page texts and appears
+    above the image automatically.
   {% endcomment %}
   {% if not content.image %}
-    <img class="page-image" src="{% static 'blog/PJBUNNI.jpg' %}" alt="Project Bunni">
+    <figure class="pb-poster">
+      <img src="{% static 'blog/PJBUNNI.jpg' %}"
+           alt="Project Bunni — coming soon">
+    </figure>
   {% endif %}
 {% endblock %}

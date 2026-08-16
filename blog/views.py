@@ -52,9 +52,24 @@ def page_context(current_page, bg_image, title, description, **extra):
         # Sidebar email link. Empty until the address is configured, and
         # base.html omits the icon entirely rather than linking nowhere.
         'contact_email': settings.CONTACT_EMAIL,
+        # Menu entries for pages that have nothing on them yet. Community and
+        # Members each held a single welcome sentence, so the menu promised
+        # content that was not there. These are computed rather than hardcoded
+        # so the links come back on their own the moment there is something to
+        # show — nobody has to remember to restore them.
+        **_menu_visibility(),
     }
     context.update(extra)
     return context
+
+
+def _menu_visibility():
+    """Which thin pages are worth linking to right now."""
+    community = PageContent.objects.filter(page='community').first()
+    return {
+        'show_members': Member.objects.filter(is_visible=True).exists(),
+        'show_community': bool(community and community.body.strip()),
+    }
 
 
 DISCORD_INVITE = 'https://discord.com/invite/YWnYE4EHk5'

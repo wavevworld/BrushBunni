@@ -341,3 +341,43 @@ class ContactEmailTests(TestCase):
         with self.settings(CONTACT_EMAIL='hello@brushbunni.com'):
             response = self.client.get(reverse('home'))
         self.assertContains(response, 'mailto:hello@brushbunni.com')
+
+
+class ThinPageMenuTests(TestCase):
+    """Community and Members are listed only when they have content.
+
+    Both held a single welcome sentence, so the menu promised pages that were
+    not there. The links are computed, not deleted, so they return on their own.
+    """
+
+    def test_menu_hides_both_while_they_are_empty(self):
+        PageContent.objects.filter(page='community').update(body='')
+        response = self.client.get(reverse('home'))
+        self.assertFalse(response.context['show_members'])
+        self.assertFalse(response.context['show_community'])
+        self.assertNotContains(response, '>Members</a>')
+
+    def test_members_returns_once_someone_is_added(self):
+        Member.objects.create(name='Kay Tang', role='artist')
+        response = self.client.get(reverse('home'))
+        self.assertTrue(response.context['show_members'])
+        self.assertContains(response, '>Members</a>')
+
+    def test_community_returns_once_it_has_text(self):
+        PageContent.objects.update_or_create(
+            page='community', defaults={'body': 'Something real to read.'})
+        response = self.client.get(reverse('home'))
+        self.assertTrue(response.context['show_community'])
+
+    def test_hidden_pages_are_still_reachable_directly(self):
+        """Hidden from the menu, not deleted — old links must not break."""
+        PageContent.objects.filter(page='community').update(body='')
+        self.assertEqual(self.client.get(reverse('members')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('community')).status_code, 200)
+
+    def test_sitemap_omits_empty_pages(self):
+        PageContent.objects.filter(page='community').update(body='')
+        body = self.client.get('/sitemap.xml').content.decode()
+        self.assertNotIn('/members/', body)
+        self.assertNotIn('/community/', body)
+        self.assertIn('/gallery/', body)

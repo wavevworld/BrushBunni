@@ -156,6 +156,12 @@ def events(request):
         "workshops and exhibitions.",
         past_events=past_events,
         upcoming_events=upcoming_events,
+        # When nothing is scheduled, the page said only "Nothing scheduled
+        # yet" — which reads as a community that stopped meeting. Showing when
+        # we last met, and where the next date gets announced, says the
+        # opposite with the same honesty.
+        last_event=past_events.order_by('-date').first(),
+        discord_invite=DISCORD_INVITE,
     ))
 
 

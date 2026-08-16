@@ -2511,32 +2511,34 @@ body.menu-open .menu-toggle span:nth-child(3) {
     .uc-action { flex-direction: row; align-items: center; justify-content: space-between; }
 }
 
-/* The nothing-scheduled line. Deliberately quiet: an empty section should not
-   own the loudest band on the page. */
-.upcoming-strip {
+/* The nothing-scheduled block. Deliberately forward-looking: it leads with
+   the next date and the Discord button, and carries the last gathering as
+   evidence the community is still meeting. */
+.upcoming-none {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 10px;
+    justify-content: space-between;
+    gap: 14px 20px;
     margin: 0 0 18px;
-    padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: var(--r-md);
-    font-size: 0.92rem;
-    color: var(--ink-600);
+    padding: 18px 22px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: var(--r-lg);
 }
 
-.upcoming-strip-label {
-    font-weight: 700;
+.upcoming-none-title {
+    display: block;
+    font-size: 1.02rem;
     color: var(--ink-800);
 }
 
-.upcoming-strip a {
-    color: var(--brand-ink);
-    font-weight: 600;
+.upcoming-none-text {
+    margin: 4px 0 0;
+    font-size: 0.92rem;
+    color: var(--ink-600);
+    max-width: 62ch;
 }
 
-/* The section keeps its bottom rounding now that nothing follows it. */
 .upcoming-section {
     margin-bottom: 22px;
 }

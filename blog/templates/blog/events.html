@@ -143,12 +143,24 @@
                 </div>
             </div>
         {% else %}
-            <p class="upcoming-strip">
-                <span class="upcoming-strip-label">Nothing scheduled yet</span>
-                <span>New events are announced on <a
-                    href="https://discord.com/invite/YWnYE4EHk5" target="_blank"
-                    rel="noopener">our Discord</a>.</span>
-            </p>
+            {% comment %}
+              "Nothing scheduled yet" on its own read as a community that had
+              stopped meeting. The date of the last gathering is the evidence
+              that it hasn't, and the button gives the reader somewhere to go
+              instead of a dead end.
+            {% endcomment %}
+            <div class="upcoming-none">
+                <div>
+                    <strong class="upcoming-none-title">The next date isn't out yet</strong>
+                    <p class="upcoming-none-text">
+                        We meet regularly in Tokyo and Kyoto, and new events are
+                        announced in our Discord first{% if last_event %} — we last
+                        got together on {{ last_event.date|date:"j F Y" }}{% endif %}.
+                    </p>
+                </div>
+                <a class="btn btn--primary" href="{{ discord_invite }}"
+                   target="_blank" rel="noopener">Join our Discord</a>
+            </div>
         {% endif %}
 
     </div>

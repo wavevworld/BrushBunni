@@ -1,5 +1,7 @@
 # views.py — page views for the public site
 
+import json
+
 from django import forms
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
@@ -385,4 +387,69 @@ def event_detail(request, slug):
         related_events=related_events,
         og_image=og_image,
         og_type='article',
+        event_schema=build_event_schema(request, event, hero_photo),
     ))
+
+
+def build_event_schema(request, event, hero_photo):
+    """schema.org/Event as JSON-LD.
+
+    The audit's point was that these events do not exist for search: the facts
+    lived in screenshots. The page already shows the date and venue as text —
+    this states them in a form a search engine can actually parse.
+
+    Returned as a JSON string; json.dumps escapes the characters that could
+    otherwise close the surrounding <script> tag early.
+    """
+    data = {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        'name': event.display_name,
+        'startDate': _iso_start(event),
+        'eventStatus': 'https://schema.org/EventScheduled',
+        'eventAttendanceMode': (
+            'https://schema.org/OnlineEventAttendanceMode' if event.is_online
+            else 'https://schema.org/OfflineEventAttendanceMode'),
+        'url': request.build_absolute_uri(event.get_absolute_url()),
+        'organizer': {
+            '@type': 'Organization',
+            'name': 'Brush Bunni',
+            'url': request.build_absolute_uri('/'),
+        },
+    }
+
+    description = event.short_description or event.description
+    if description:
+        data['description'] = description[:300]
+
+    if hero_photo and hero_photo.image:
+        data['image'] = [request.build_absolute_uri(hero_photo.image.url)]
+
+    # Only claim a place when there is one; an Event with an empty location is
+    # worse than an Event with none.
+    if event.is_online:
+        data['location'] = {'@type': 'VirtualLocation',
+                            'url': request.build_absolute_uri(event.get_absolute_url())}
+    elif event.location or event.city:
+        place = {'@type': 'Place', 'name': event.location or event.city}
+        if event.city:
+            place['address'] = {'@type': 'PostalAddress',
+                                'addressLocality': event.city,
+                                'addressCountry': 'JP'}
+        data['location'] = place
+
+    if event.registration_url:
+        data['offers'] = {
+            '@type': 'Offer',
+            'url': event.registration_url,
+            'availability': 'https://schema.org/InStock',
+        }
+
+    return json.dumps(data, ensure_ascii=False)
+
+
+def _iso_start(event):
+    """Date, with the time appended only when we actually know it."""
+    if event.start_time:
+        return f"{event.date.isoformat()}T{event.start_time.isoformat()}"
+    return event.date.isoformat()

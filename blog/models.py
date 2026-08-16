@@ -72,8 +72,16 @@ class Event(models.Model):
     end_time = models.TimeField(blank=True, null=True)
     
     # Location
-    location = models.CharField(max_length=200, blank=True)
-    is_online = models.BooleanField(default=False)
+    location = models.CharField(
+        max_length=200, blank=True, verbose_name="Venue",
+        help_text="The place itself, e.g. \"Demachi Gadget, Demachiyanagi\".")
+    city = models.CharField(
+        max_length=100, blank=True,
+        help_text="Kyoto, Tokyo, and so on. Kept separate from the venue so "
+                  "search engines can read where the event was held.")
+    is_online = models.BooleanField(
+        default=False, verbose_name="Online event",
+        help_text="Tick for events with no physical venue.")
     
     # Registration
     max_participants = models.PositiveIntegerField(blank=True, null=True)

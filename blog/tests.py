@@ -5,7 +5,7 @@ the check nothing else was making — a template typo or a view referencing a
 deleted model would previously only show up by loading the page by hand.
 """
 
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -381,3 +381,57 @@ class ThinPageMenuTests(TestCase):
         self.assertNotIn('/members/', body)
         self.assertNotIn('/community/', body)
         self.assertIn('/gallery/', body)
+
+
+class EventSchemaTests(TestCase):
+    """schema.org/Event — the events had no machine-readable facts at all."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.event = Event.objects.create(
+            code='SCHEMA-1', title='Kyoto Gathering',
+            date=date(2025, 9, 27), start_time=time(14, 30),
+            location='Demachi Gadget', city='Kyoto',
+            short_description='A talk and a drawing session.',
+        )
+
+    def _schema(self, event=None):
+        import json as _json
+        response = self.client.get((event or self.event).get_absolute_url())
+        body = response.content.decode()
+        start = body.index('application/ld+json">') + len('application/ld+json">')
+        return _json.loads(body[start:body.index('</script>', start)])
+
+    def test_page_carries_parsable_event_markup(self):
+        data = self._schema()
+        self.assertEqual(data['@type'], 'Event')
+        self.assertEqual(data['name'], 'Kyoto Gathering')
+
+    def test_start_date_includes_the_time_when_known(self):
+        self.assertEqual(self._schema()['startDate'], '2025-09-27T14:30:00')
+
+    def test_start_date_is_date_only_without_a_time(self):
+        self.event.start_time = None
+        self.event.save()
+        self.assertEqual(self._schema()['startDate'], '2025-09-27')
+
+    def test_city_becomes_a_postal_address(self):
+        place = self._schema()['location']
+        self.assertEqual(place['name'], 'Demachi Gadget')
+        self.assertEqual(place['address']['addressLocality'], 'Kyoto')
+
+    def test_no_location_claimed_when_there_is_none(self):
+        """An Event asserting an empty place is worse than one asserting none."""
+        bare = Event.objects.create(code='SCHEMA-2', title='Bare',
+                                    date=date(2025, 1, 1))
+        self.assertNotIn('location', self._schema(bare))
+
+    def test_online_events_use_a_virtual_location(self):
+        self.event.is_online = True
+        self.event.save()
+        self.assertEqual(self._schema()['location']['@type'], 'VirtualLocation')
+
+    def test_venue_and_city_both_render_as_text(self):
+        response = self.client.get(self.event.get_absolute_url())
+        self.assertContains(response, 'Demachi Gadget')
+        self.assertContains(response, 'Kyoto')

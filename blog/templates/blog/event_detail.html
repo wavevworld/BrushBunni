@@ -2,6 +2,14 @@
 {% load static %}
 
 {% block content %}
+{% comment %}
+  schema.org/Event. The page already prints the date and venue for a reader;
+  this states the same facts in a form a search engine can parse, which is what
+  the events were missing — their details only existed inside photographs.
+  Built in the view so json.dumps escapes anything that could close this tag.
+{% endcomment %}
+<script type="application/ld+json">{{ event_schema|safe }}</script>
+
 <article class="ev">
 
   <a href="{% url 'events' %}" class="ev-back">← Back to Events</a>
@@ -50,10 +58,17 @@
       </div>
     {% endif %}
 
-    {% if event.location %}
+    {% if event.location or event.city %}
       <div class="ev-fact">
         <dt>{% if event.is_online %}Where{% else %}Venue{% endif %}</dt>
-        <dd>{{ event.location }}</dd>
+        {% comment %}
+          Venue and city are separate fields now. Printed together, but each
+          guarded, so an event with only one of them reads correctly rather
+          than leaving a stray comma.
+        {% endcomment %}
+        <dd>
+          {{ event.location }}{% if event.location and event.city %}, {% endif %}{{ event.city }}
+        </dd>
       </div>
     {% endif %}
 

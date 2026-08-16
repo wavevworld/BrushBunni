@@ -5,12 +5,14 @@ the check nothing else was making — a template typo or a view referencing a
 deleted model would previously only show up by loading the page by hand.
 """
 
+import re
 from datetime import date, time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Event, BBNote, ContactMessage, Gallery, Member, PageContent
+from .models import (Event, EventPhoto, BBNote, ContactMessage, Gallery, Member,
+                     PageContent)
 
 
 class PublicPagesTests(TestCase):
@@ -435,3 +437,55 @@ class EventSchemaTests(TestCase):
         response = self.client.get(self.event.get_absolute_url())
         self.assertContains(response, 'Demachi Gadget')
         self.assertContains(response, 'Kyoto')
+
+
+class ImageAltTests(TestCase):
+    """No image may announce itself as rubbish.
+
+    Event photos used to carry alt="{event} - {caption}"; once the captions
+    were cleared every one ended in a dangling dash, so a screen reader read
+    the event name followed by nothing.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.event = Event.objects.create(
+            code='ALT-1', title='Alt event', date=date(2025, 5, 1))
+        EventPhoto.objects.create(event=cls.event, image='events/a.jpg')
+        EventPhoto.objects.create(event=cls.event, image='events/b.jpg',
+                                  caption='Everyone drawing at the long table')
+        artist = Member.objects.create(name='Kay Tang', role='artist')
+        Gallery.objects.create(title='Red Oni', artist=artist,
+                               image='gallery/red.jpg')
+
+    @staticmethod
+    def _alts(html):
+        return re.findall(r'<img[^>]*\balt="([^"]*)"', html)
+
+    def test_no_alt_ends_with_a_dangling_dash(self):
+        for path in ['/', '/gallery/', '/events/', '/members/', '/bb-online/',
+                     self.event.get_absolute_url()]:
+            html = self.client.get(path).content.decode()
+            for alt in self._alts(html):
+                with self.subTest(path=path, alt=alt):
+                    self.assertFalse(
+                        re.search(r'[-–—]\s*$', alt),
+                        f'alt ends with a dangling dash on {path}: {alt!r}')
+
+    def test_no_alt_is_only_punctuation(self):
+        for path in ['/', '/gallery/', '/events/']:
+            for alt in self._alts(self.client.get(path).content.decode()):
+                with self.subTest(path=path, alt=alt):
+                    self.assertFalse(alt.strip() and not re.search(r'\w', alt))
+
+    def test_uncaptioned_event_photos_are_marked_decorative(self):
+        html = self.client.get('/events/').content.decode()
+        self.assertIn('role="presentation"', html)
+
+    def test_captioned_photo_uses_its_caption(self):
+        html = self.client.get(self.event.get_absolute_url()).content.decode()
+        self.assertIn('Everyone drawing at the long table', self._alts(html))
+
+    def test_artwork_alt_names_the_piece_and_the_artist(self):
+        alts = self._alts(self.client.get('/gallery/?artist=kay-tang').content.decode())
+        self.assertIn('Red Oni by Kay Tang', alts)

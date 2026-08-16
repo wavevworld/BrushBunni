@@ -39,7 +39,8 @@
       {% for art in artworks %}
         <li class="gal-item">
           <a class="gal-thumb" href="{% url 'gallery' %}?artist={{ member.slug }}">
-            <img src="{{ art.image.url }}" alt="{{ art.title }}" loading="lazy">
+            <img src="{{ art.image.url }}" alt="{{ art.title }} by {{ member.name }}"
+                 loading="lazy">
           </a>
           <div class="gal-meta">
             <strong class="gal-title">{{ art.title }}</strong>

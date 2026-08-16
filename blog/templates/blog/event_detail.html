@@ -133,8 +133,18 @@
               <button type="button" class="ev-thumb"
                       data-full="{{ photo.image.url }}"
                       data-caption="{{ photo.caption|default:'' }}">
-                <img src="{{ photo.image.url }}" loading="lazy"
-                     alt="{{ photo.caption|default:event.display_name }}">
+                {% comment %}
+                  Falling back to the event name meant five photos in a row all
+                  announced "BB FESTA #1", which tells a screen-reader user
+                  nothing about any of them. Silence is more useful than that.
+                {% endcomment %}
+                {% if photo.caption %}
+                  <img src="{{ photo.image.url }}" loading="lazy"
+                       alt="{{ photo.caption }}">
+                {% else %}
+                  <img src="{{ photo.image.url }}" loading="lazy"
+                       alt="" role="presentation">
+                {% endif %}
               </button>
             {% endif %}
             {% if photo.caption %}<p class="ev-caption">{{ photo.caption }}</p>{% endif %}

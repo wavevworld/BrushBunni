@@ -64,7 +64,21 @@
                                             {% if photo.is_video %}
                                                 <video src="{{ photo.image.url }}" muted loop></video>
                                             {% else %}
-                                                <img src="{{ photo.image.url }}" alt="{{ event.title }} - {{ photo.caption }}">
+                                                {% comment %}
+                                                  A caption if there is one; otherwise
+                                                  marked decorative. This used to be
+                                                  "{title} - {caption}", which left every
+                                                  alt ending in a dangling dash once the
+                                                  captions were cleared — a screen reader
+                                                  read the event name and then nothing.
+                                                {% endcomment %}
+                                                {% if photo.caption %}
+                                                    <img src="{{ photo.image.url }}"
+                                                         alt="{{ photo.caption }}">
+                                                {% else %}
+                                                    <img src="{{ photo.image.url }}"
+                                                         alt="" role="presentation">
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                     {% endfor %}
@@ -354,14 +368,17 @@ function isLightboxOpen() {
 function openLightbox(imageSrc) {
     if (!imageSrc) return;
 
+    // Carry each photo's alt across with it. The lightbox used to set only
+    // src, so the enlarged image was announced as nothing at all no matter
+    // what the thumbnail said.
     lightboxPhotos = visibleSlides
         .map(slide => slide.querySelector('img'))
         .filter(Boolean)
-        .map(img => img.src);
+        .map(img => ({ src: img.src, alt: img.getAttribute('alt') || '' }));
 
-    const found = lightboxPhotos.indexOf(imageSrc);
+    const found = lightboxPhotos.findIndex(photo => photo.src === imageSrc);
     lightboxIndex = found === -1 ? 0 : found;
-    if (!lightboxPhotos.length) lightboxPhotos = [imageSrc];
+    if (!lightboxPhotos.length) lightboxPhotos = [{ src: imageSrc, alt: '' }];
 
     document.getElementById('lightbox').style.display = 'block';
     document.body.style.overflow = 'hidden';
@@ -378,7 +395,13 @@ function stepLightbox(direction) {
 
 function renderLightbox() {
     const total = lightboxPhotos.length;
-    document.getElementById('lightboxImg').src = lightboxPhotos[lightboxIndex];
+    const photo = lightboxPhotos[lightboxIndex];
+    const image = document.getElementById('lightboxImg');
+    image.src = photo.src;
+    image.alt = photo.alt;
+    // A photo with no caption is decorative in the grid and stays decorative
+    // enlarged, rather than being announced as an unlabelled image.
+    image.setAttribute('role', photo.alt ? 'img' : 'presentation');
     document.getElementById('lightboxCounter').textContent =
         total > 1 ? `${lightboxIndex + 1} / ${total}` : '';
     // A single photo has nowhere to go, so the arrows are removed rather than

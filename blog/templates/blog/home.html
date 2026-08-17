@@ -15,11 +15,21 @@
     {% if content.intro %}
       {{ content.intro }}
     {% else %}
-      An art community in Japan for illustrators, painters and creators —
-      meet-ups and workshops in Tokyo and Kyoto, and a gallery of work by
-      the people who come.
+      An international art community based in Japan. We hold meet-ups and
+      exhibitions in Tokyo and Kyoto, and the rest of the time we're on
+      Discord.
     {% endif %}
   </p>
+
+  {% comment %}
+    Order follows what a first-time visitor asks, in the order they ask it:
+    what is this (lede), tell me more (body), is it real (stats), how do I
+    join (buttons), show me (cards). "Join our Discord" used to come before
+    any description, so the page invited people in before saying where to.
+  {% endcomment %}
+  {% if content.body %}
+    <div class="page-body">{{ content.body|linebreaks }}</div>
+  {% endif %}
 
   {% if stats %}
     <ul class="home-stats">
@@ -37,10 +47,6 @@
        target="_blank" rel="noopener">Join our Discord</a>
     <a class="btn btn--ghost" href="{% url 'events' %}">See what we do</a>
   </p>
-
-  {% if content.body %}
-    <div class="page-body">{{ content.body|linebreaks }}</div>
-  {% endif %}
 
   <ul class="home-cards">
     {% if latest_event %}

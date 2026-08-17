@@ -1067,172 +1067,7 @@ body.menu-open .menu-toggle span:nth-child(3) {
   color: var(--ink-900);
 }
 
-/* ----- Hero ----- */
-.ev-hero {
-  position: relative;
-  border-radius: var(--r-2xl);
-  overflow: hidden;
-  padding: clamp(28px, 5vw, 56px);
-  min-height: 240px;
-  display: flex;
-  align-items: flex-end;
-  background-image: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.2) 100%), var(--hero);
-  background-size: cover;
-  background-position: center;
-  box-shadow: var(--shadow-lg);
-}
-
-/* No photo yet — brand gradient instead of an empty grey box */
-.ev-hero--plain {
-  background-image: linear-gradient(135deg, var(--brand-ink), var(--brand-magenta) 55%, var(--brand-pink));
-}
-
-.ev-hero-inner {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-}
-
-.ev-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 14px;
-}
-
-.ev-badge {
-  padding: 5px 13px;
-  border-radius: var(--r-pill);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--ink-700);
-}
-
-.ev-badge--upcoming {
-  background: #34d399;
-  color: #05372a;
-}
-
-.ev-badge--past {
-  background: rgba(255, 255, 255, 0.28);
-  color: #fff;
-}
-
-.ev-badge--online {
-  background: #60a5fa;
-  color: #06264d;
-}
-
-.ev-title {
-  margin: 0;
-  color: #fff;
-  font-size: clamp(1.9rem, 5vw, 3.1rem);
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
-}
-
-.ev-tagline {
-  margin: 10px 0 0;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 1.05rem;
-  max-width: 60ch;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
-}
-
-/* ----- Key facts ----- */
-.ev-facts {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 1px;
-  margin: 18px 0 0;
-  padding: 0;
-  background: var(--hairline);
-  border-radius: var(--r-xl);
-  overflow: hidden;
-}
-
-.ev-fact {
-  background: var(--surface);
-  padding: 16px 18px;
-}
-
-.ev-fact dt {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  margin-bottom: 5px;
-}
-
-.ev-fact dd {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--ink-800);
-}
-
-/* ----- Actions ----- */
-.ev-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 20px 0 0;
-}
-
-/* ----- Sections ----- */
-.ev-section {
-  margin-top: 26px;
-  padding: 24px clamp(18px, 3vw, 30px);
-  background: var(--surface);
-  border-radius: 18px;
-  box-shadow: var(--shadow-sm);
-}
-
-.ev-h2 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 16px;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--ink-800);
-}
-
-.ev-count {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--brand-ink);
-  background: #efecff;
-  border-radius: var(--r-pill);
-  padding: 2px 10px;
-}
-
-.ev-body {
-  color: var(--ink-600);
-  line-height: 1.7;
-  max-width: 70ch;
-}
-
-.ev-body p {
-  margin: 0 0 1rem;
-}
-
 /* ----- Photo grid ----- */
-.ev-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
-}
-
 .ev-grid-item {
   margin: 0;
 }
@@ -1267,70 +1102,6 @@ body.menu-open .menu-toggle span:nth-child(3) {
   font-size: 0.85rem;
   color: var(--ink-500);
   line-height: 1.4;
-}
-
-/* ----- Related events ----- */
-.ev-related {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 14px;
-}
-
-.ev-related-card {
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  background: var(--surface-tint);
-  border: 1px solid var(--hairline);
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.ev-related-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.ev-related-img {
-  display: block;
-  background: var(--surface-tint-strong);
-  line-height: 0;
-}
-
-.ev-related-img img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-}
-
-.ev-related-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 16 / 10;
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
-.ev-related-text {
-  display: block;
-  padding: 12px 14px 14px;
-}
-
-.ev-related-text strong {
-  display: block;
-  font-size: 0.98rem;
-  margin-bottom: 3px;
-}
-
-.ev-related-text small {
-  color: #777;
-  font-size: 0.83rem;
 }
 
 /* ----- Lightbox ----- */
@@ -1413,10 +1184,9 @@ body.menu-open .menu-toggle span:nth-child(3) {
     height: 40px;
     font-size: 24px;
   }
-  .ev-facts {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  }
-  .ev-actions .ev-btn {
+  /* A sign-up button is the one thing a phone reader is likely to tap, so it
+     gets the full width rather than sharing a row with the note.com link. */
+  .ev-actions .btn {
     flex: 1 1 100%;
     text-align: center;
   }
@@ -2754,4 +2524,210 @@ body.menu-open .menu-toggle span:nth-child(3) {
   height: auto;
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-md);
+}
+
+/* ----- Event summary: what you are looking at, in words -----
+   The tabs and the carousel described an event only through pictures, so its
+   date, venue and story were invisible to a reader and to search. */
+.event-summary[hidden] {
+    display: none;
+}
+
+.event-summary {
+    margin: 0 0 18px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: var(--r-lg);
+}
+
+.event-summary-name {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.event-summary-name a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.event-summary-name a:hover {
+    text-decoration: underline;
+}
+
+.event-summary-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 8px;
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.event-summary-meta span:not(:last-child)::after {
+    content: "·";
+    margin-left: 8px;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.event-summary-text {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.event-summary-more {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    opacity: 0.85;
+}
+
+.event-summary-more:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .event-summary { padding: 14px 16px; }
+    .event-summary-name { font-size: 1.1rem; }
+}
+
+/* =========================================================================
+   EVENT DETAIL — one surface
+   The page was a hero with text over a photo, a five-card fact strip, an
+   actions bar and three more panels, each translucent over the site's
+   background photograph. Every block of text sat on a different busy image,
+   which is what made it hard to read. Now: one solid card, the title on a
+   plain background, and the facts as a single line.
+   ========================================================================= */
+.ev-card {
+  background: #fff;
+  border-radius: var(--r-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+/* The photo is a picture, not a backdrop for text. */
+.ev-cover {
+  display: block;
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+}
+
+.ev-body {
+  padding: 26px clamp(20px, 3vw, 34px) 4px;
+  color: var(--ink-700);
+}
+
+.ev-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--ink-900);
+}
+
+/* Facts on one line. Separators come from CSS so a missing time or venue
+   leaves nothing dangling. */
+.ev-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin: 10px 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-500);
+}
+
+/* The dot belongs to the item that follows it, not the one before — so when
+   the line wraps on a phone the separator travels with the next word instead
+   of being left stranded at the end of the previous line. */
+.ev-meta span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--ink-200);
+}
+
+.ev-lede {
+  margin: 14px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink-600);
+  max-width: 62ch;
+}
+
+.ev-text {
+  margin: 14px 0 0;
+  line-height: 1.7;
+  max-width: 68ch;
+}
+
+.ev-text p { margin: 0 0 1rem; }
+
+.ev-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin: 20px 0 22px;
+}
+
+.ev-link {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+  text-decoration: none;
+}
+
+.ev-link:hover { text-decoration: underline; }
+
+/* Photos sit flush inside the same card rather than in their own panel. */
+.ev-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0 clamp(20px, 3vw, 34px) clamp(20px, 3vw, 34px);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* Other events: a plain row of links, not three image cards competing with
+   the event you are actually reading about. */
+.ev-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 0;
+}
+
+.ev-more a {
+  flex: 1 1 200px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--r-md);
+  text-decoration: none;
+  color: var(--ink-800);
+  transition: background 0.15s ease;
+}
+
+.ev-more a:hover { background: #fff; }
+
+.ev-more strong {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.ev-more small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: var(--ink-500);
 }

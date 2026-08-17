@@ -12,118 +12,78 @@
 
 <article class="ev">
 
-  <a href="{% url 'events' %}" class="ev-back">← Back to Events</a>
+  <a href="{% url 'events' %}" class="ev-back">&larr; All events</a>
 
   {% comment %}
-    Hero: the event's own photo as the backdrop, with a dark scrim so the title
-    stays readable whatever the photo looks like. Falls back to a flat gradient
-    when the event has no photos yet.
+    One surface, not six. This page used to stack a hero, a five-card fact
+    strip, an actions bar and three more panels, each translucent over the
+    site's background photograph — so every block of text sat on a different
+    busy image. The title also sat on top of the photo, which made it hard to
+    read whatever the photo happened to be.
   {% endcomment %}
-  <header class="ev-hero{% if not hero_photo %} ev-hero--plain{% endif %}"
-          {% if hero_photo %}style="--hero: url('{{ hero_photo.image.url }}')"{% endif %}>
-    <div class="ev-hero-inner">
-      <p class="ev-badges">
-        <span class="ev-badge ev-badge--type">{{ event.get_event_type_display }}</span>
-        {% if event.is_upcoming %}
-          <span class="ev-badge ev-badge--upcoming">Upcoming</span>
-        {% else %}
-          <span class="ev-badge ev-badge--past">Past event</span>
-        {% endif %}
-        {% if event.is_online %}
-          <span class="ev-badge ev-badge--online">Online</span>
-        {% endif %}
-      </p>
+  <div class="ev-card">
 
+    {% if hero_photo %}
+      <img class="ev-cover" src="{{ hero_photo.image.url }}" alt="" loading="lazy">
+    {% endif %}
+
+    <div class="ev-body">
       <h1 class="ev-title">{{ event.display_name }}</h1>
 
-      {% if event.short_description %}
-        <p class="ev-tagline">{{ event.short_description }}</p>
-      {% endif %}
-    </div>
-  </header>
-
-  <!-- Key facts -->
-  <dl class="ev-facts">
-    <div class="ev-fact">
-      <dt>Date</dt>
-      <dd>{{ event.date|date:"l, F j, Y" }}</dd>
-    </div>
-
-    {% if event.start_time %}
-      <div class="ev-fact">
-        <dt>Time</dt>
-        <dd>
-          {{ event.start_time|time:"g:i A" }}{% if event.end_time %} – {{ event.end_time|time:"g:i A" }}{% endif %}
-        </dd>
-      </div>
-    {% endif %}
-
-    {% if event.location or event.city %}
-      <div class="ev-fact">
-        <dt>{% if event.is_online %}Where{% else %}Venue{% endif %}</dt>
-        {% comment %}
-          Venue and city are separate fields now. Printed together, but each
-          guarded, so an event with only one of them reads correctly rather
-          than leaving a stray comma.
-        {% endcomment %}
-        <dd>
-          {{ event.location }}{% if event.location and event.city %}, {% endif %}{{ event.city }}
-        </dd>
-      </div>
-    {% endif %}
-
-    {% if event.max_participants %}
-      <div class="ev-fact">
-        <dt>Capacity</dt>
-        <dd>{{ event.max_participants }} people</dd>
-      </div>
-    {% endif %}
-
-    {% if event.registration_deadline %}
-      <div class="ev-fact">
-        <dt>Sign-up closes</dt>
-        <dd>{{ event.registration_deadline|date:"F j, Y" }}</dd>
-      </div>
-    {% endif %}
-  </dl>
-
-  <!-- Actions -->
-  {% if event.registration_url or event.note_url %}
-    <p class="ev-actions">
-      {% if event.registration_url %}
-        <a class="ev-btn ev-btn--primary" href="{{ event.registration_url }}"
-           target="_blank" rel="noopener">
-          {% if event.is_upcoming %}Sign up for this event{% else %}Sign-up form{% endif %} ↗
-        </a>
-      {% endif %}
-      {% if event.note_url %}
-        <a class="ev-btn ev-btn--ghost" href="{{ event.note_url }}"
-           target="_blank" rel="noopener">Read the write-up on note.com ↗</a>
-      {% endif %}
-    </p>
-  {% endif %}
-
-  <!-- Description -->
-  {% if event.description %}
-    <section class="ev-section">
-      <h2 class="ev-h2">About this event</h2>
-      <div class="ev-body">{{ event.description|linebreaks }}</div>
-    </section>
-  {% endif %}
-
-  <!-- Gallery -->
-  {% if event_photos %}
-    <section class="ev-section">
-      <h2 class="ev-h2">
-        {% if event.is_upcoming %}Posters &amp; artwork{% else %}Event photos{% endif %}
-        <span class="ev-count">{{ event_photos|length }}</span>
-      </h2>
-
       {% comment %}
-        A plain responsive grid, not a carousel: every photo is visible at once
-        and nothing depends on JS to lay out correctly. Clicking opens a
-        lightbox, which is progressive enhancement on top.
+        The facts as one line rather than five boxes. Each part is optional and
+        the separators come from CSS, so a missing time or venue leaves no
+        stray punctuation behind.
       {% endcomment %}
+      <p class="ev-meta">
+        <span>{{ event.date|date:"j F Y" }}</span>
+        {% if event.start_time %}
+          <span>{{ event.start_time|time:"H:i" }}{% if event.end_time %}–{{ event.end_time|time:"H:i" }}{% endif %}</span>
+        {% endif %}
+        {% if event.is_online %}
+          <span>Online</span>
+        {% elif event.location or event.city %}
+          {% comment %}
+            Append the city only when the venue does not already name it —
+            otherwise "Instituto Cervantes Tokyo" becomes
+            "Instituto Cervantes Tokyo, Tokyo".
+          {% endcomment %}
+          <span>
+            {% if event.location and event.city and event.city not in event.location %}
+              {{ event.location }}, {{ event.city }}
+            {% else %}
+              {{ event.location|default:event.city }}
+            {% endif %}
+          </span>
+        {% endif %}
+        <span>{{ event.get_event_type_display }}</span>
+      </p>
+
+      {% if event.short_description %}
+        <p class="ev-lede">{{ event.short_description }}</p>
+      {% endif %}
+
+      {% if event.description %}
+        <div class="ev-text">{{ event.description|linebreaks }}</div>
+      {% endif %}
+
+      {% if event.registration_url or event.note_url %}
+        <p class="ev-actions">
+          {% if event.registration_url %}
+            <a class="btn btn--primary" href="{{ event.registration_url }}"
+               target="_blank" rel="noopener">
+              {% if event.is_upcoming %}Sign up{% else %}Sign-up form{% endif %}
+            </a>
+          {% endif %}
+          {% if event.note_url %}
+            <a class="ev-link" href="{{ event.note_url }}"
+               target="_blank" rel="noopener">Read the write-up on note.com &rarr;</a>
+          {% endif %}
+        </p>
+      {% endif %}
+    </div>
+
+    {% if event_photos %}
       <ul class="ev-grid">
         {% for photo in event_photos %}
           <li class="ev-grid-item">
@@ -133,17 +93,10 @@
               <button type="button" class="ev-thumb"
                       data-full="{{ photo.image.url }}"
                       data-caption="{{ photo.caption|default:'' }}">
-                {% comment %}
-                  Falling back to the event name meant five photos in a row all
-                  announced "BB FESTA #1", which tells a screen-reader user
-                  nothing about any of them. Silence is more useful than that.
-                {% endcomment %}
                 {% if photo.caption %}
-                  <img src="{{ photo.image.url }}" loading="lazy"
-                       alt="{{ photo.caption }}">
+                  <img src="{{ photo.image.url }}" loading="lazy" alt="{{ photo.caption }}">
                 {% else %}
-                  <img src="{{ photo.image.url }}" loading="lazy"
-                       alt="" role="presentation">
+                  <img src="{{ photo.image.url }}" loading="lazy" alt="" role="presentation">
                 {% endif %}
               </button>
             {% endif %}
@@ -151,34 +104,20 @@
           </li>
         {% endfor %}
       </ul>
-    </section>
+    {% endif %}
+  </div>
+
+  {% if related_events %}
+    <nav class="ev-more" aria-label="Other events">
+      {% for related in related_events %}
+        <a href="{{ related.get_absolute_url }}">
+          <strong>{{ related.display_name }}</strong>
+          <small>{{ related.date|date:"j F Y" }}</small>
+        </a>
+      {% endfor %}
+    </nav>
   {% endif %}
 
-  <!-- Related -->
-  {% if related_events %}
-    <section class="ev-section">
-      <h2 class="ev-h2">Other events</h2>
-      <ul class="ev-related">
-        {% for related in related_events %}
-          <li>
-            <a href="{{ related.get_absolute_url }}" class="ev-related-card">
-              <span class="ev-related-img">
-                {% if related.photos.first %}
-                  <img src="{{ related.photos.first.image.url }}" loading="lazy" alt="">
-                {% else %}
-                  <span class="ev-related-placeholder">🎨</span>
-                {% endif %}
-              </span>
-              <span class="ev-related-text">
-                <strong>{{ related.display_name }}</strong>
-                <small>{{ related.date|date:"F j, Y" }}</small>
-              </span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    </section>
-  {% endif %}
 </article>
 
 <!-- Lightbox -->

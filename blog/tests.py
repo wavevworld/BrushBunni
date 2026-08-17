@@ -352,12 +352,14 @@ class ThinPageMenuTests(TestCase):
     not there. The links are computed, not deleted, so they return on their own.
     """
 
-    def test_menu_hides_both_while_they_are_empty(self):
+    def test_community_is_hidden_while_it_is_empty(self):
+        """Members is exempt — the owner wants it listed while profiles are
+        still being collected, so only Community is gated on content."""
         PageContent.objects.filter(page='community').update(body='')
         response = self.client.get(reverse('home'))
-        self.assertFalse(response.context['show_members'])
         self.assertFalse(response.context['show_community'])
-        self.assertNotContains(response, '>Members</a>')
+        self.assertNotContains(response, '>Community</a>')
+        self.assertTrue(response.context['show_members'])
 
     def test_members_returns_once_someone_is_added(self):
         Member.objects.create(name='Kay Tang', role='artist')
@@ -489,3 +491,60 @@ class ImageAltTests(TestCase):
     def test_artwork_alt_names_the_piece_and_the_artist(self):
         alts = self._alts(self.client.get('/gallery/?artist=kay-tang').content.decode())
         self.assertIn('Red Oni by Kay Tang', alts)
+
+
+class EventSummaryTests(TestCase):
+    """Each event says what it was in text, not only in photographs."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.described = Event.objects.create(
+            code='SUM-1', title='Kyoto Gathering',
+            date=date(2025, 9, 27), location='Demachi Gadget', city='Kyoto',
+            short_description='A talk on creative fear.')
+        cls.same_place = Event.objects.create(
+            code='SUM-2', title='City only', date=date(2025, 8, 1),
+            location='Kyoto', city='Kyoto')
+
+    def test_summary_shows_name_date_and_description(self):
+        response = self.client.get(reverse('events'))
+        self.assertContains(response, 'Kyoto Gathering')
+        self.assertContains(response, '27 September 2025')
+        self.assertContains(response, 'A talk on creative fear.')
+
+    def test_venue_and_city_are_not_repeated(self):
+        """A venue that is just the city name gave "Kyoto, Kyoto"."""
+        body = self.client.get(reverse('events')).content.decode()
+        self.assertNotIn('Kyoto, Kyoto', body)
+        detail = self.client.get(self.same_place.get_absolute_url()).content.decode()
+        self.assertNotIn('Kyoto, Kyoto', detail)
+
+    def test_distinct_venue_and_city_both_appear(self):
+        detail = self.client.get(self.described.get_absolute_url()).content.decode()
+        self.assertIn('Demachi Gadget', detail)
+        self.assertIn('Kyoto', detail)
+
+
+class MenuAndContactTests(TestCase):
+    """Owner's calls: Members stays listed, the mail icon always shows."""
+
+    def test_members_is_always_listed_even_when_empty(self):
+        self.assertFalse(Member.objects.exists())
+        response = self.client.get(reverse('home'))
+        self.assertTrue(response.context['show_members'])
+        self.assertContains(response, '>Members</a>')
+
+    def test_empty_members_page_still_says_something(self):
+        response = self.client.get(reverse('members'))
+        self.assertContains(response, 'Profiles are on their way')
+
+    def test_mail_icon_falls_back_to_the_contact_form(self):
+        with self.settings(CONTACT_EMAIL=''):
+            response = self.client.get(reverse('home'))
+        self.assertContains(response, 'Send us a message')
+        self.assertNotContains(response, 'example.com')
+
+    def test_mail_icon_becomes_a_mailto_once_configured(self):
+        with self.settings(CONTACT_EMAIL='hello@brushbunni.com'):
+            response = self.client.get(reverse('home'))
+        self.assertContains(response, 'mailto:hello@brushbunni.com')

@@ -48,6 +48,50 @@
                 </div>
             </div>
 
+            {% comment %}
+              What you are actually looking at. The tabs and photos said
+              nothing in text, so an event's date, venue and description
+              existed only inside the pictures. One block per event; the
+              matching one is shown with its photos.
+            {% endcomment %}
+            {% for event in past_events %}
+                <div class="event-summary" data-event-id="{{ event.id }}">
+                    <h2 class="event-summary-name">
+                        <a href="{{ event.get_absolute_url }}">{{ event.display_name }}</a>
+                    </h2>
+
+                    <p class="event-summary-meta">
+                        <span>{{ event.date|date:"j F Y" }}</span>
+                        {% if event.is_online %}
+                            <span>Online</span>
+                        {% elif event.location or event.city %}
+                            {% comment %}
+                              Some venues are just the city name, so printing
+                              both gave "Kyoto, Kyoto".
+                            {% endcomment %}
+                            <span>
+                                {% if event.location and event.city and event.location != event.city %}
+                                    {{ event.location }}, {{ event.city }}
+                                {% else %}
+                                    {{ event.location|default:event.city }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                        <span>{{ event.get_event_type_display }}</span>
+                    </p>
+
+                    {% if event.short_description or event.description %}
+                        <p class="event-summary-text">
+                            {{ event.short_description|default:event.description|truncatewords:45 }}
+                        </p>
+                    {% endif %}
+
+                    <a class="event-summary-more" href="{{ event.get_absolute_url }}">
+                        Read more about this event &rarr;
+                    </a>
+                </div>
+            {% endfor %}
+
             <!-- Photo Gallery Carousel -->
             <div class="gallery-carousel">
                 <button class="carousel-nav prev" onclick="changeSlide(-1)" aria-label="Previous">‹</button>
@@ -294,6 +338,12 @@ function updateVisibleSlides() {
         slide.classList.remove('is-centre', 'active');
         if (match) visibleSlides.push(slide);
     });
+
+    // The text block follows the same selection as the photos.
+    document.querySelectorAll('.event-summary').forEach(summary => {
+        summary.hidden = summary.getAttribute('data-event-id') !== currentEventId;
+    });
+
     currentSlide = 0;
 }
 

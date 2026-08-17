@@ -33,5 +33,17 @@
         </li>
       {% endfor %}
     </ul>
+  {% else %}
+    {% comment %}
+      Members stays in the menu even while empty, so the page has to say
+      something rather than stopping after the heading. It points at the work
+      that does exist instead of apologising.
+    {% endcomment %}
+    <p class="members-empty">
+      Profiles are on their way. In the meantime you can see the community's
+      work in the <a href="{% url 'gallery' %}">gallery</a>, or come and say
+      hello on <a href="https://discord.com/invite/YWnYE4EHk5" target="_blank"
+      rel="noopener">our Discord</a>.
+    </p>
   {% endif %}
 {% endblock %}

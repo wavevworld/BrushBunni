@@ -66,10 +66,15 @@ def page_context(current_page, bg_image, title, description, **extra):
 
 
 def _menu_visibility():
-    """Which thin pages are worth linking to right now."""
+    """Which thin pages are worth linking to right now.
+
+    Members stays in the menu at the owner's request even while it is empty —
+    profiles are coming — so the page carries an honest empty state instead.
+    Community is still hidden until it has more than a welcome sentence.
+    """
     community = PageContent.objects.filter(page='community').first()
     return {
-        'show_members': Member.objects.filter(is_visible=True).exists(),
+        'show_members': True,
         'show_community': bool(community and community.body.strip()),
     }
 
@@ -95,10 +100,13 @@ def home(request):
     # community started, and how many people are in the Discord. Set
     # FOUNDED_YEAR / DISCORD_MEMBERS in settings and they appear here; until
     # then the row simply shows the three we can stand behind.
+    # The labels say "in the gallery" because that is what these two count.
+    # "artists shown" read as though the community had six people in it, when
+    # it is six artists who currently have work uploaded.
     stats = [
         {'value': past_events.count(), 'label': 'events held'},
-        {'value': artist_count, 'label': 'artists shown'},
-        {'value': artworks.count(), 'label': 'works in the gallery'},
+        {'value': artist_count, 'label': 'artists in the gallery'},
+        {'value': artworks.count(), 'label': 'works on show'},
     ]
     for value, label in ((getattr(settings, 'FOUNDED_YEAR', ''), 'founded'),
                          (getattr(settings, 'DISCORD_MEMBERS', ''), 'in our Discord')):

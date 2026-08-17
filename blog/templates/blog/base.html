@@ -102,13 +102,18 @@
         <img src="{% static 'blog/icons/instagram.svg' %}" alt="Instagram">
       </a>
       {% comment %}
-        Only rendered once CONTACT_EMAIL is configured. This carried a
-        hardcoded youremail@example.com for months — an icon that is absent is
-        better than one that mails a placeholder domain.
+        The icon always shows. Until CONTACT_EMAIL is set it points at the
+        contact form, which works — that keeps the row of icons intact without
+        going back to the hardcoded youremail@example.com that sat here for
+        months. Set the address and it becomes a real mailto.
       {% endcomment %}
       {% if contact_email %}
         <a href="mailto:{{ contact_email }}">
           <img src="{% static 'blog/icons/gmail.svg' %}" alt="Email us">
+        </a>
+      {% else %}
+        <a href="{% url 'contact' %}">
+          <img src="{% static 'blog/icons/gmail.svg' %}" alt="Send us a message">
         </a>
       {% endif %}
     </div>

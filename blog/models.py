@@ -219,18 +219,28 @@ class EventPhoto(models.Model):
 
 class BBNote(models.Model):
     title = models.CharField(max_length=200, help_text="Article title")
-    url = models.URLField(max_length=500, help_text="Full URL from note.com")
-    description = models.CharField(max_length=300, blank=True, 
+    url = models.URLField(max_length=500, verbose_name="Link",
+                          help_text="Full URL from note.com")
+    description = models.CharField(max_length=300, blank=True,
+                                   verbose_name="Summary",
                                    help_text="Short description (optional)")
     thumbnail = models.ImageField(upload_to='bbnotes/', blank=True, null=True,
+                                  verbose_name="Cover image",
                                   help_text="Preview image (optional)")
     published_date = models.DateField(blank=True, null=True,
+                                      verbose_name="Published",
                                       help_text="When the article was published on note.com")
-    is_pinned = models.BooleanField(default=False, 
-                                     help_text="Pin to top of list")
+    # Plain-language labels, matching Gallery and Event. These read as
+    # "Is pinned" / "Is visible" in the list header otherwise — Django's
+    # default, and the only two columns in the admin still phrased that way.
+    is_pinned = models.BooleanField(default=False,
+                                    verbose_name="Pin to the top",
+                                    help_text="Pinned notes appear first.")
     is_visible = models.BooleanField(default=True,
-                                      help_text="Show on website")
-    order = models.PositiveIntegerField(default=0)
+                                     verbose_name="Show on the website",
+                                     help_text="Untick to hide without deleting.")
+    order = models.PositiveIntegerField(default=0, verbose_name="Position",
+                                        help_text="Lower numbers come first.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -337,13 +347,19 @@ class Member(models.Model):
     slug = models.SlugField(max_length=120, unique=True, blank=True,
                             help_text="Auto-filled from the name; used in the "
                                       "profile page URL")
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
-    bio = models.TextField(blank=True, help_text="A short line or two about them")
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    portfolio_url = models.URLField(blank=True, help_text="Portfolio or website")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member',
+                            verbose_name="Role")
+    bio = models.TextField(blank=True, verbose_name="Short bio",
+                           help_text="A short line or two about them")
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True,
+                               verbose_name="Photo")
+    portfolio_url = models.URLField(blank=True, verbose_name="Portfolio link",
+                                    help_text="Portfolio or website")
     instagram_handle = models.CharField(
-        max_length=100, blank=True, help_text="Without the @")
-    discord_username = models.CharField(max_length=100, blank=True)
+        max_length=100, blank=True, verbose_name="Instagram",
+        help_text="Without the @")
+    discord_username = models.CharField(max_length=100, blank=True,
+                                        verbose_name="Discord username")
     is_featured = models.BooleanField(
         default=False, verbose_name="Pin to the top",
         help_text="Featured members appear before everyone else.")
@@ -402,23 +418,25 @@ class Gallery(models.Model):
     here from the admin, so there is deliberately no public upload path.
     """
 
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='gallery/')
+    title = models.CharField(max_length=200, verbose_name="Title of the piece")
+    description = models.TextField(blank=True, verbose_name="Description")
+    image = models.ImageField(upload_to='gallery/', verbose_name="Artwork")
 
     # Credit. `artist` links the piece to a Member profile; `artist_name`
     # covers guest artists who exhibit at a BB Festa without being members.
     # SET_NULL, not CASCADE: removing someone from the Members page must not
     # delete the artwork they contributed.
     artist = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True,
-                               blank=True, related_name='artworks')
+                               blank=True, related_name='artworks',
+                               verbose_name="Artist (member profile)")
     artist_name = models.CharField(
-        max_length=120, blank=True,
+        max_length=120, blank=True, verbose_name="Artist name (guest)",
         help_text="Credit for an artist who is not on the Members page. "
                   "Ignored when an artist is chosen above.")
 
     event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True,
                               blank=True, related_name='artworks',
+                              verbose_name="Shown at event",
                               help_text="Optional: the event this was shown at")
     tags = models.CharField(
         max_length=200, blank=True,
@@ -476,8 +494,9 @@ class ContactMessage(models.Model):
     email = models.EmailField()
     subject = models.CharField(max_length=200)
     message = models.TextField()
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False, verbose_name="Read",
+                                  help_text="Tick once you have dealt with it.")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Received")
 
     class Meta:
         ordering = ['-created_at']

@@ -252,15 +252,19 @@ JAZZMIN_UI_TWEAKS = {
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-danger",
-    "accent": "accent-danger",
+    # Purple, not red. Red is Bootstrap's "danger", so every model name and
+    # every link in the dashboard read as a warning, and #dc3545 on white
+    # measures 4.28:1 — under the 4.5:1 WCAG AA wants. AdminLTE's purple
+    # (#6f42c1) measures 5.85:1 and sits next to the site's --brand-ink #6c5ce7.
+    "brand_colour": "navbar-purple",
+    "accent": "accent-purple",
     "navbar": "navbar-white navbar-light",
     "no_navbar_border": False,
     "navbar_fixed": True,
     "layout_boxed": False,
     "footer_fixed": False,
     "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-danger",
+    "sidebar": "sidebar-dark-purple",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
     "sidebar_nav_child_indent": True,

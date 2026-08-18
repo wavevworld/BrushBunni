@@ -413,11 +413,16 @@ class BBNoteAdmin(admin.ModelAdmin):
     visible_icon.short_description = "Vis"
 
     def open_link(self, obj):
+        # white-space:nowrap because the column is narrow: without it "Open ↗"
+        # broke across two lines and the arrow tore out of the pill.
+        # Purple to match the rest of the admin — the orange was left over
+        # from before the theme was set.
         return format_html(
-            '<a href="{}" target="_blank" style="text-decoration:none;'
-            'background:#ff6b35;color:white;padding:4px 12px;border-radius:12px;'
-            'font-size:12px;font-weight:600">Open ↗</a>', obj.url)
-    open_link.short_description = ""
+            '<a href="{}" target="_blank" rel="noopener" '
+            'style="text-decoration:none;background:#6f42c1;color:#fff;'
+            'padding:4px 12px;border-radius:12px;font-size:12px;'
+            'font-weight:600;white-space:nowrap">Open ↗</a>', obj.url)
+    open_link.short_description = "Article"
 
     # ── Save ─────────────────────────────────────────────────────────────────
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):

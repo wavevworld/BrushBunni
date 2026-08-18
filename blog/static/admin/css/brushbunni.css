@@ -2,19 +2,12 @@
    BrushBunni Admin — Clean Theme
    ============================================================================= */
 
-/* ── Hide clutter ──────────────────────────────────────────────────────────── */
-#changelist-search,                  /* search bar */
-.actions,                            /* bulk actions row */
-#changelist-filter,                  /* sidebar filter panel */
-.object-tools .addlink + li,         /* extra object tools */
-#result_list thead th:first-child .text, /* select-all checkbox label */
-.paginator                           /* pagination (if list_per_page is enough) */
-{
-    /* display: none !important; */
-}
-
-/* Actually hide search */
-#changelist-search { display: none !important; }
+/* ── Search ────────────────────────────────────────────────────────────────
+   The search box used to be hidden outright. Every ModelAdmin defines
+   search_fields, so the feature was built and then made unreachable: 71
+   artworks, 30 BB Notes and 11 events with no way to look anything up.
+   It stays visible.
+   ------------------------------------------------------------------------ */
 
 /* Hide "Select all" checkbox column — we use drag instead */
 #result_list thead th.action-checkbox-column,
@@ -216,8 +209,11 @@ input[type="submit"].default:hover {
 
 /* ── Status filter as tabs ─────────────────────────────────────────────────── */
 
-/* Make list filter look like tabs */
-#changelist-filter {
+/* Events replaces the filter panel with the tab bar that brushbunni.js
+   injects, so the panel is hidden *there only*. It used to be hidden on every
+   changelist, but the tab bar is only built for Events — so Gallery, Members
+   and BB Notes lost their list_filter entirely and got nothing back. */
+.model-event #changelist-filter {
     display: none;
 }
 

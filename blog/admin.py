@@ -166,21 +166,32 @@ class EventAdmin(admin.ModelAdmin):
     actions = None
 
     # ── Edit form ────────────────────────────────────────────────────────────
+    # Rows of three wrapped: "End time" and "Online event" kept their labels on
+    # one line while their inputs dropped to the next, so the form showed a
+    # label with no field under it and a stray box under the field above.
+    # Pairs survive the jazzmin grid at this width; a checkbox gets its own row.
     fieldsets = [
         (None, {
             'fields': [
                 ('name', 'event_type'),
-                ('date', 'start_time', 'end_time'),
-                ('location', 'is_online'),
+                ('date',),
+                ('start_time', 'end_time'),
+                ('location',),
+                'is_online',
                 'short_description',
                 'description',
                 'note_url',
                 'registration_url',
                 'upload_photos',
+                'is_active',
             ],
         }),
     ]
-    exclude = ['code', 'title', 'slug', 'is_active', 'order',
+    # is_active is editable on purpose: it is how an event with an unconfirmed
+    # date gets taken off the website without deleting it and losing its
+    # photographs. It used to be excluded, so a hidden event could only be
+    # brought back by a migration.
+    exclude = ['code', 'title', 'slug', 'order',
                'registration_required', 'registration_deadline', 'max_participants']
 
     # ── Custom AJAX URLs ─────────────────────────────────────────────────────
@@ -770,14 +781,22 @@ def _dashboard_todo():
             'url': reverse('admin:blog_gallery_changelist'),
         })
 
-    empty_pages = PageContent.objects.filter(body='').count()
-    if empty_pages:
-        plural = empty_pages > 1
+    # Name the pages that are actually empty. The hint used to list all four
+    # by hand, so once About Us had text the card read "3 pages have no text
+    # yet" and then named four pages, About Us among them.
+    empty = list(PageContent.objects.filter(body='')
+                                    .order_by('page')
+                                    .values_list('page', flat=True))
+    if empty:
+        labels = dict(PageContent.PAGE_CHOICES)
+        names = [str(labels.get(page, page)) for page in empty]
+        plural = len(empty) > 1
         todo.append({
-            'text': f'{empty_pages} page{"s" if plural else ""} '
+            'text': f'{len(empty)} page{"s" if plural else ""} '
                     f'{"have" if plural else "has"} no text yet',
-            'hint': 'About Us, Community, Members and Project Bunni are empty '
-                    'until you write something here.',
+            'hint': f'{", ".join(names)} '
+                    f'{"are" if plural else "is"} empty until you write '
+                    f'something here.',
             'url': reverse('admin:blog_pagecontent_changelist'),
         })
 

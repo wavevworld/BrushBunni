@@ -268,7 +268,13 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_legacy_style": False,
     "sidebar_nav_flat_style": False,
     "theme": "default",
-    "dark_mode_theme": "darkly",
+    # Dark mode is off on purpose. Jazzmin's "darkly" only restyles the
+    # Bootstrap components — the AdminLTE wrapper keeps its light background,
+    # so on a machine set to dark mode the page heading, the breadcrumb and
+    # every label outside a card rendered white on #f4f6f9: a contrast ratio
+    # of 1.08:1 against the 4.5:1 that WCAG AA asks for. The text was there
+    # and invisible. A consistent light admin beats a half-applied dark one.
+    "dark_mode_theme": None,
     "button_classes": {
         "primary": "btn-primary",
         "secondary": "btn-secondary",

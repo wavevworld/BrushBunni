@@ -204,6 +204,19 @@ JAZZMIN_SETTINGS = {
     "site_brand": "BrushBunni",
     "welcome_sign": "Welcome to BrushBunni Admin",
     "copyright": "BrushBunni Art Community",
+
+    # Loaded on every admin page. It used to be attached through `class Media`
+    # on each ModelAdmin, which only covers that model's own pages — so the
+    # dashboard and the login page never got the stylesheet at all, and their
+    # buttons kept AdminLTE's green and teal while every list page was purple.
+    "custom_css": "admin/css/brushbunni.css",
+    "custom_js": "admin/js/brushbunni.js",
+
+    # The login page showed jazzmin's default "A" glyph — the first thing
+    # Matilda sees, and not Brush Bunni's.
+    "site_logo": "blog/logo.png",
+    "login_logo": "blog/logo.png",
+    "site_logo_classes": "",
     # No global search box. Jazzmin renders one per model listed here, so
     # naming three put three boxes side by side in the header; naming one made
     # it read "Search Events…" on every page including Gallery. Each list page

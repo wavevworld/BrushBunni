@@ -326,9 +326,6 @@ class EventAdmin(admin.ModelAdmin):
             if count:
                 messages.success(request, f'✓ Uploaded {count} photo(s)')
 
-    class Media:
-        css = {'all': ['admin/css/brushbunni.css']}
-        js = ['admin/js/brushbunni.js']
 
 
 # =============================================================================
@@ -436,9 +433,6 @@ class BBNoteAdmin(admin.ModelAdmin):
             obj.order = max_order + 10
         super().save_model(request, obj, form, change)
 
-    class Media:
-        css = {'all': ['admin/css/brushbunni.css']}
-        js = ['admin/js/brushbunni.js']
 
 
 # =============================================================================
@@ -515,9 +509,6 @@ class PageContentAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False  # the pages themselves are fixed; clear the fields instead
 
-    class Media:
-        css = {'all': ['admin/css/brushbunni.css']}
-        js = ['admin/js/brushbunni.js']
 
 
 # =============================================================================
@@ -583,9 +574,6 @@ class MemberAdmin(admin.ModelAdmin):
             obj.order = max_order + 10
         super().save_model(request, obj, form, change)
 
-    class Media:
-        css = {'all': ['admin/css/brushbunni.css']}
-        js = ['admin/js/brushbunni.js']
 
 
 
@@ -718,9 +706,6 @@ class GalleryAdmin(admin.ModelAdmin):
             'title': "Upload artwork",
         })
 
-    class Media:
-        css = {'all': ['admin/css/brushbunni.css']}
-        js = ['admin/js/brushbunni.js']
 
 
 # =============================================================================

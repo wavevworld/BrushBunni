@@ -301,3 +301,266 @@ input[type="submit"].default:hover {
     color: #999;
     margin-top: 4px;
 }
+
+/* =============================================================================
+   AKEBONO-INSPIRED SURFACE
+   Taken from the Akebono Predator catalogue design: a white page, cards with a
+   24px radius and a 1px #F4F4F4 hairline instead of shadows, bold near-black
+   headings, grey secondary text, and one accent colour used sparingly. The
+   admin was carrying three visual languages at once — AdminLTE's blue, this
+   file's older #667eea, and jazzmin's own — so this section settles on one.
+   ============================================================================= */
+
+:root {
+    --bb-ink: #111111;
+    --bb-muted: #8a8a8a;
+    --bb-hairline: #f4f4f4;
+    --bb-line: #ececec;
+    --bb-accent: #6f42c1;
+    --bb-r-card: 24px;
+    --bb-r-control: 12px;
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
+.content-wrapper,
+.wrapper {
+    background: #fff !important;
+}
+
+.content-header h1,
+.content-wrapper h1 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bb-ink);
+}
+
+/* ── Cards: hairline, not shadow ──────────────────────────────────────────── */
+.card,
+.content-wrapper fieldset,
+fieldset.module {
+    background: #fff !important;
+    border: 1px solid var(--bb-hairline) !important;
+    border-radius: var(--bb-r-card) !important;
+    box-shadow: none !important;
+}
+
+.card-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--bb-hairline) !important;
+    padding: 18px 22px !important;
+}
+
+.card-title {
+    font-weight: 700 !important;
+    color: var(--bb-ink) !important;
+}
+
+.card-body { padding: 22px !important; }
+
+/* ── Tables: hairlines and room to breathe, no zebra ──────────────────────── */
+#result_list,
+.table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+}
+
+#result_list thead th,
+.table thead th {
+    background: #fff !important;
+    border: none !important;
+    border-bottom: 1px solid var(--bb-line) !important;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--bb-muted) !important;
+    padding: 14px 16px !important;
+}
+
+#result_list tbody td,
+.table tbody td {
+    border: none !important;
+    border-bottom: 1px solid var(--bb-hairline) !important;
+    padding: 14px 16px !important;
+    vertical-align: middle;
+}
+
+#result_list tbody tr:nth-child(odd),
+#result_list tbody tr:nth-child(even),
+.table-striped tbody tr:nth-of-type(odd) {
+    background: #fff !important;
+}
+
+#result_list tbody tr:hover,
+.table tbody tr:hover {
+    background: #fafafa !important;
+}
+
+/* ── Controls ─────────────────────────────────────────────────────────────── */
+#content input[type="text"],
+#content input[type="url"],
+#content input[type="email"],
+#content input[type="number"],
+#content input[type="date"],
+#content input[type="time"],
+#content input[type="password"],
+#content textarea,
+#content select,
+.form-control,
+.select2-container--default .select2-selection--single {
+    border: 1px solid var(--bb-line) !important;
+    border-radius: var(--bb-r-control) !important;
+    padding: 10px 14px !important;
+    font-size: 14px;
+    box-shadow: none !important;
+}
+
+#content input:focus,
+#content textarea:focus,
+#content select:focus,
+.form-control:focus {
+    border-color: var(--bb-accent) !important;
+    box-shadow: 0 0 0 3px rgba(111, 66, 193, 0.12) !important;
+    outline: none;
+}
+
+/* ── Buttons: flat, rounded, one accent ───────────────────────────────────── */
+.btn,
+input[type="submit"],
+.object-tools a,
+.addlink {
+    border-radius: var(--bb-r-control) !important;
+    border: 1px solid transparent !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+}
+
+.btn-primary,
+input[type="submit"][name="_save"],
+input[type="submit"].default,
+.object-tools a,
+.addlink {
+    background: var(--bb-accent) !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover,
+input[type="submit"][name="_save"]:hover,
+.object-tools a:hover,
+.addlink:hover {
+    background: #5a35a3 !important;
+}
+
+/* Secondary actions read as quiet outlines rather than a second colour. */
+.btn-info,
+.btn-secondary,
+input[type="submit"][name="_addanother"],
+input[type="submit"][name="_continue"] {
+    background: #fff !important;
+    color: var(--bb-ink) !important;
+    border: 1px solid var(--bb-line) !important;
+}
+
+.btn-info:hover,
+.btn-secondary:hover,
+input[type="submit"][name="_addanother"]:hover,
+input[type="submit"][name="_continue"]:hover {
+    background: #fafafa !important;
+}
+
+/* Delete stays red — it is the one place colour should alarm. */
+.btn-danger,
+.deletelink {
+    background: #fff !important;
+    color: #d92d20 !important;
+    border: 1px solid #f2d3d0 !important;
+}
+
+.btn-danger:hover,
+.deletelink:hover { background: #fef3f2 !important; }
+
+/* ── Thumbnails match the card radius ─────────────────────────────────────── */
+.list-thumb,
+.list-thumb.empty,
+.photo-thumb img,
+.photo-thumb.video-thumb {
+    border-radius: 12px !important;
+    border: 1px solid var(--bb-hairline) !important;
+}
+
+.photo-thumb img:hover { border-color: var(--bb-accent) !important; }
+
+/* ── Filters and search sit on the page, not in a box ─────────────────────── */
+#change-list-filters,
+#changelist-search {
+    margin-bottom: 18px;
+}
+
+/* ── Help text ────────────────────────────────────────────────────────────── */
+.help, .helptext, .form-text {
+    font-size: 12px !important;
+    color: var(--bb-muted) !important;
+}
+
+/* The "Add …" button is jazzmin's, and ships as .btn-success — green, which
+   made the page's main action a different colour from every other one. The
+   "Upload several" link sits in a loose <li> outside any list, so the browser
+   drew a bullet next to it. */
+.page-actions .btn-success {
+    background: var(--bb-accent) !important;
+    color: #fff !important;
+}
+
+.page-actions .btn-success:hover { background: #5a35a3 !important; }
+
+.page-actions li,
+.page-actions ul {
+    list-style: none !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* Tick boxes follow the accent rather than the browser default blue. */
+#content input[type="checkbox"],
+#result_list input[type="checkbox"] {
+    accent-color: var(--bb-accent);
+}
+
+/* Jazzmin's own .btn-success / .btn-info load after this file, so a single
+   class ties on specificity and loses. .btn.btn-success wins outright.
+   Add is the primary action, Change is secondary — one accent, one outline,
+   instead of green-and-teal. */
+.btn.btn-success,
+a.addlink {
+    background: var(--bb-accent) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+}
+
+.btn.btn-success:hover,
+a.addlink:hover { background: #5a35a3 !important; }
+
+.btn.btn-info,
+a.changelink {
+    background: #fff !important;
+    border: 1px solid var(--bb-line) !important;
+    color: var(--bb-ink) !important;
+}
+
+.btn.btn-info:hover,
+a.changelink:hover { background: #fafafa !important; }
+
+.btn.btn-xs { padding: 6px 14px !important; font-size: 12px !important; }
+
+/* Save is the action on this page; History and View on site are navigation.
+   They arrive as .btn-secondary, which the accent theme paints purple — so
+   three purple buttons stacked, none of them more important than the others. */
+.btn.btn-secondary {
+    background: #fff !important;
+    border: 1px solid var(--bb-line) !important;
+    color: var(--bb-ink) !important;
+}
+
+.btn.btn-secondary:hover { background: #fafafa !important; }

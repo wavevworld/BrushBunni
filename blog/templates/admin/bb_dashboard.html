@@ -12,14 +12,21 @@
 {% endcomment %}
 
 {% block content %}
-  <div style="display:flex; flex-wrap:wrap; gap:14px; margin:0 0 18px;">
+  {% comment %}
+    Four saturated blocks — purple, green, orange, grey — meant four numbers
+    competing to be read first, and none of the colours carried meaning. White
+    cards with a hairline instead, the number in the accent and the label in
+    grey, matching the surface the rest of the admin now uses.
+  {% endcomment %}
+  <div style="display:flex; flex-wrap:wrap; gap:14px; margin:0 0 22px;">
     {% for card in bb_stats %}
       <a href="{{ card.url }}"
-         style="flex:1 1 160px; min-width:160px; text-decoration:none;
-                border-radius:6px; padding:16px 18px; color:#fff;
-                background:{{ card.colour }};">
-        <div style="font-size:2.1rem; font-weight:700; line-height:1;">{{ card.count }}</div>
-        <div style="margin-top:6px; opacity:0.92;">{{ card.label }}</div>
+         style="flex:1 1 170px; min-width:170px; text-decoration:none;
+                border:1px solid #f4f4f4; border-radius:24px;
+                padding:22px 24px; background:#fff;">
+        <div style="font-size:2.2rem; font-weight:700; line-height:1;
+                    color:#6f42c1;">{{ card.count }}</div>
+        <div style="margin-top:8px; font-size:0.9rem; color:#8a8a8a;">{{ card.label }}</div>
       </a>
     {% endfor %}
   </div>

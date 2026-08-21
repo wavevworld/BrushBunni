@@ -93,33 +93,18 @@ def home(request):
     latest_event = past_events.order_by('-date').first()
 
     artworks = Gallery.objects.filter(is_visible=True)
-    artist_count = len({art.credit for art in artworks})
 
-    # Counted from the database rather than typed in, so they cannot go stale.
-    # TODO(owner): two more would help and cannot be derived — the year the
-    # community started, and how many people are in the Discord. Set
-    # FOUNDED_YEAR / DISCORD_MEMBERS in settings and they appear here; until
-    # then the row simply shows the three we can stand behind.
-    # The labels say "in the gallery" because that is what these two count.
-    # "artists shown" read as though the community had six people in it, when
-    # it is six artists who currently have work uploaded.
-    stats = [
-        {'value': past_events.count(), 'label': 'events held'},
-        {'value': artist_count, 'label': 'artists in the gallery'},
-        {'value': artworks.count(), 'label': 'works on show'},
-    ]
-    for value, label in ((getattr(settings, 'FOUNDED_YEAR', ''), 'founded'),
-                         (getattr(settings, 'DISCORD_MEMBERS', ''), 'in our Discord')):
-        if value:
-            stats.append({'value': value, 'label': label})
-
+    # The counted row that used to sit here — events held, artists, works —
+    # was removed at the owner's request: it read as a metrics dashboard on a
+    # page whose whole message is "no pressure, just bring your sketchbook",
+    # and the numbers are small enough to undersell the community. The cards
+    # further down show the work itself, which does the job better.
     return render(request, 'blog/home.html', page_context(
         'home', 'blog/bg_about.jpg',
         "Brush Bunni — art community in Japan",
         "Brush Bunni is an art community in Japan for illustrators and "
         "creators — meet-ups and workshops in Tokyo and Kyoto, and a gallery "
         "of work by our members.",
-        stats=stats,
         latest_event=latest_event,
         artwork_count=artworks.count(),
         # Every card needs a picture or the row reads as two empty boxes beside

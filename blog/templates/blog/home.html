@@ -23,23 +23,17 @@
 
   {% comment %}
     Order follows what a first-time visitor asks, in the order they ask it:
-    what is this (lede), tell me more (body), is it real (stats), how do I
-    join (buttons), show me (cards). "Join our Discord" used to come before
-    any description, so the page invited people in before saying where to.
+    what is this (lede), tell me more (body), how do I join (buttons), show me
+    (cards). "Join our Discord" used to come before any description, so the
+    page invited people in before saying where to.
+
+    The counted row (10 events held / 6 artists / 71 works) sat here and read
+    as a metrics dashboard rather than an invitation — for a community built
+    on "no pressure, just bring your sketchbook", small numbers undersell it.
+    The cards below already show the work.
   {% endcomment %}
   {% if content.body %}
     <div class="page-body">{{ content.body|linebreaks }}</div>
-  {% endif %}
-
-  {% if stats %}
-    <ul class="home-stats">
-      {% for stat in stats %}
-        <li class="home-stat">
-          <span class="home-stat-value">{{ stat.value }}</span>
-          <span class="home-stat-label">{{ stat.label }}</span>
-        </li>
-      {% endfor %}
-    </ul>
   {% endif %}
 
   <p class="home-actions">

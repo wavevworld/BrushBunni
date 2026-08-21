@@ -56,8 +56,14 @@
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div>
+      {% comment %}
+        The logo is the way back to the front page on every site — it was the
+        one thing here that looked clickable and wasn't.
+      {% endcomment %}
       <div class="logo">
-        <img src="{% static 'blog/logo.png' %}" alt="Brush Bunni Logo">
+        <a href="{% url 'home' %}" aria-label="Brush Bunni — home">
+          <img src="{% static 'blog/logo.png' %}" alt="Brush Bunni Logo">
+        </a>
       </div>
       <div class="menu-container">
         <nav class="nav">

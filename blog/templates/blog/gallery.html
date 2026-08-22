@@ -145,8 +145,12 @@
       index = (i + thumbs.length) % thumbs.length;
       const t = thumbs[index];
       img.src = t.dataset.full;
-      img.alt = t.dataset.title;
-      caption.textContent = `${t.dataset.title} — ${t.dataset.credit}`;
+      // Most pieces have no title, so joining unconditionally printed a
+      // caption that began with a stray dash: " — Michi".
+      const title = (t.dataset.title || '').trim();
+      const credit = (t.dataset.credit || '').trim();
+      img.alt = title ? `${title} by ${credit}` : `Artwork by ${credit}`;
+      caption.textContent = title ? `${title} — ${credit}` : credit;
       box.hidden = false;
     }
 

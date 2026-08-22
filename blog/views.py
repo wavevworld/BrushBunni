@@ -266,11 +266,19 @@ def gallery(request):
 
 
 def build_artist_folders(artworks):
-    """One entry per artist: a cover image, a count and a way in."""
+    """One entry per artist: a cover image, a count and a way in.
+
+    Folders follow the order of the artwork itself — newest artist first — not
+    the alphabet. Sorting on the name put Christopher at the front for no
+    reason other than the letter C, while the most recently featured artist
+    was buried at the bottom. `rank` records where each artist first appears
+    in the (already ordered) queryset.
+    """
     folders = {}
-    for art in artworks:
+    for position, art in enumerate(artworks):
         folder = folders.setdefault(art.credit, {
             'name': art.credit, 'artist': None, 'cover': art, 'count': 0,
+            'rank': position,
         })
         folder['count'] += 1
         if art.artist and not folder['artist']:
@@ -278,7 +286,7 @@ def build_artist_folders(artworks):
         # Prefer a featured piece as the cover when there is one.
         if art.is_featured and not folder['cover'].is_featured:
             folder['cover'] = art
-    return sorted(folders.values(), key=lambda f: f['name'].lower())
+    return sorted(folders.values(), key=lambda f: f['rank'])
 
 
 def folder_title(artworks):

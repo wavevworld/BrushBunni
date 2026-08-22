@@ -80,26 +80,31 @@
         <ul class="gal-grid">
           {% for art in group.items %}
             <li class="gal-item">
+              {% comment %}
+                Most pieces have no title: they came from the artist spotlight
+                posts, which publish the work without naming it. Rather than
+                print "Untitled #7", the card shows the work and the credit,
+                and a real title appears here the moment one is entered.
+              {% endcomment %}
               <button type="button" class="gal-thumb"
                       data-full="{{ art.image.url }}"
                       data-title="{{ art.title }}"
                       data-credit="{{ art.credit }}">
-                <img src="{{ art.image.url }}" alt="{{ art.title }} by {{ art.credit }}"
+                <img src="{{ art.image.url }}"
+                     alt="{% if art.title %}{{ art.title }} by {{ art.credit }}{% else %}Artwork by {{ art.credit }}{% endif %}"
                      loading="lazy">
               </button>
 
-              {% comment %}
-                The artist is the section heading, so each card only needs the
-                piece itself and where it was shown.
-              {% endcomment %}
-              <div class="gal-meta">
-                <strong class="gal-title">{{ art.title }}</strong>
-                {% if art.event %}
-                  <a class="gal-event" href="{{ art.event.get_absolute_url }}">
-                    {{ art.event.display_name|default:art.event.title }}
-                  </a>
-                {% endif %}
-              </div>
+              {% if art.title or art.event %}
+                <div class="gal-meta">
+                  {% if art.title %}<strong class="gal-title">{{ art.title }}</strong>{% endif %}
+                  {% if art.event %}
+                    <a class="gal-event" href="{{ art.event.get_absolute_url }}">
+                      {{ art.event.display_name|default:art.event.title }}
+                    </a>
+                  {% endif %}
+                </div>
+              {% endif %}
             </li>
           {% endfor %}
         </ul>

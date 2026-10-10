@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,15 +21,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# Read secrets/flags from the environment, with safe defaults so a plain
-# deploy keeps working until these env vars are set on the server.
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-iwifad*kl2dp&8at6=j9qr2!&e=)jbi#c&t(l*gvq-x82ev(@l',
-)
+# Defaults to False; set DJANGO_DEBUG=True for local development.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
-# Defaults to True; set DJANGO_DEBUG=False in production to turn it off.
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() != 'false'
+# In production DJANGO_SECRET_KEY must be set — no fallback, so a deploy that
+# forgets it fails loudly instead of silently running on a key that's public
+# in this repo's history. DEBUG-only local runs get a clearly-marked dev key.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-dev-only-do-not-deploy'
+    else:
+        raise ImproperlyConfigured(
+            'DJANGO_SECRET_KEY must be set in the environment when DEBUG is off.'
+        )
 
 ALLOWED_HOSTS = os.environ.get(
     'DJANGO_ALLOWED_HOSTS',
